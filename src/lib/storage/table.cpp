@@ -60,7 +60,10 @@ void Table::add_column(const std::string& name, const std::string& type) {
 }
 
 void Table::append(const std::vector<AllTypeVariant>& values) {
-  // Implementation goes here
+  if (_chunks.back()->size() == _max_chunk_size) {
+    _append_new_chunk();
+  }
+  _chunks.back()->append(values);
 }
 
 void Table::emplace_chunk(const std::shared_ptr<Chunk> chunk) {
@@ -78,35 +81,39 @@ ColumnCount Table::column_count() const {
 }
 
 uint64_t Table::row_count() const {
-  // Implementation goes here
-  return 0;
+  return std::accumulate(_chunks.begin(), _chunks.end(), 0, [](uint64_t sum, std::shared_ptr<Chunk> current_chunk){
+    return sum + current_chunk->size();
+  });
 }
 
 ChunkID Table::chunk_count() const {
-  // Implementation goes here
-  return ChunkID{0};
+  return ChunkID{_chunks.size()};
 }
 
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
-  // Implementation goes here
-  return ColumnID{0};
+  auto search_index_iter = std::find(_column_names.begin(), _column_names.end(), column_name);
+  if (search_index_iter == _column_names.end()) {
+    throw std::invalid_argument("Column name not found");
+  }
+  return ColumnID{std::distance(_column_names.begin(), search_index_iter)};
 }
 
 ChunkOffset Table::target_chunk_size() const {
-  // Implementation goes here
-  return 0;
+  return _max_chunk_size;
 }
 
 const std::vector<std::string>& Table::column_names() const {
-  throw std::runtime_error("Implement Table::column_names()");
+  return _column_names;
 }
 
 const std::string& Table::column_name(const ColumnID column_id) const {
-  throw std::runtime_error("Implement Table::column_name");
+  DebugAssert(column_id < column_count(), "\"column_id\" is out of bounds.");
+  return _column_names[column_id];
 }
 
 const std::string& Table::column_type(const ColumnID column_id) const {
-  throw std::runtime_error("Implement Table::column_type");
+  DebugAssert(column_id < column_count(), "\"column_id\" is out of bounds.");
+  return _column_types[column_id];
 }
 
 Chunk& Table::get_chunk(ChunkID chunk_id) {
@@ -114,6 +121,9 @@ Chunk& Table::get_chunk(ChunkID chunk_id) {
   return *_chunks[chunk_id];
 }
 
-const Chunk& Table::get_chunk(ChunkID chunk_id) const { throw std::runtime_error("Implement Table::get_chunk"); }
+const Chunk& Table::get_chunk(ChunkID chunk_id) const {
+  DebugAssert(chunk_id < column_count(), "\"column_id\" is out of bounds.");
+  return *_chunks[chunk_id];
+}
 
 }  // namespace opossum

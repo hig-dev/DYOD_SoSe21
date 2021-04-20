@@ -63,6 +63,16 @@ void Table::append(const std::vector<AllTypeVariant>& values) {
   // Implementation goes here
 }
 
+void Table::emplace_chunk(const std::shared_ptr<Chunk> chunk) {
+  if(row_count() == 0) {
+    // only existing chunk is empty -> replace chunk
+    _chunks[0] = chunk;
+  } else {
+    // TODO: DebugAssert that the previous chunk is full
+    _chunks.emplace_back(chunk);
+  }
+}
+
 ColumnCount Table::column_count() const {
   return ColumnCount{_column_types.size()};
 }

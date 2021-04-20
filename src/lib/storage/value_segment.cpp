@@ -14,7 +14,7 @@ namespace opossum {
 
 template <typename T>
 AllTypeVariant ValueSegment<T>::operator[](const ChunkOffset chunk_offset) const {
-  Assert(chunk_offset >= 0 && chunk_offset < size(), "The parameter \"chunk_offset\" is out of range.");
+  DebugAssert(chunk_offset < size(), "The parameter \"chunk_offset\" is out of range.");
   return _values[chunk_offset];
 }
 
@@ -27,6 +27,11 @@ void ValueSegment<T>::append(const AllTypeVariant& val) {
 template <typename T>
 ChunkOffset ValueSegment<T>::size() const {
   return _values.size();
+}
+
+template <typename T>
+const std::vector<T>& ValueSegment<T>::values() const {
+  return _values;
 }
 
 EXPLICITLY_INSTANTIATE_DATA_TYPES(ValueSegment);

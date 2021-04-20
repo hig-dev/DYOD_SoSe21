@@ -10,38 +10,52 @@
 namespace opossum {
 
 StorageManager& StorageManager::get() {
-  return *(new StorageManager());
-  // A really hacky fix to get the tests to run - replace this with your implementation
+  static StorageManager _instance;
+  return _instance;
 }
 
 void StorageManager::add_table(const std::string& name, std::shared_ptr<Table> table) {
-  // Implementation goes here
+  auto insertion_result = _tables.insert({name, table});
+  Assert(insertion_result.second, "Table could not be inserted because there was an existing table with the same name.");
 }
 
 void StorageManager::drop_table(const std::string& name) {
-  // Implementation goes here
+  auto dropped_table_count = _tables.erase(name);
+  Assert(dropped_table_count == 1, "Table could not be removed because it was not found with this name.");
 }
 
 std::shared_ptr<Table> StorageManager::get_table(const std::string& name) const {
-  // Implementation goes here
-  return nullptr;
+  return _tables.at(name);
 }
 
 bool StorageManager::has_table(const std::string& name) const {
-  // Implementation goes here
-  return false;
+  return _tables.contains(name);
 }
 
 std::vector<std::string> StorageManager::table_names() const {
-  throw std::runtime_error("Implement StorageManager::table_names");
+  auto names = std::vector<std::string>();
+  names.reserve(_tables.size());
+  for (const auto& map_entry : _tables) {
+    names.push_back(map_entry.first);
+  }
+  return names;
 }
 
 void StorageManager::print(std::ostream& out) const {
-  // Implementation goes here
+  out << _tables.size() << " tables available:" << std::endl;
+  for (const auto& map_entry : _tables) {
+    const auto& table_name = map_entry.first;
+    const auto& table = map_entry.second;
+    out << " - \"" << table_name << "\" ["
+        << "column_count=" << table->column_count() << ","
+        << " row_count=" << table->row_count() << ","
+        << " chunk_count=" << table->chunk_count() << "]" << std::endl;
+  }
 }
 
 void StorageManager::reset() {
-  // Implementation goes here;
+  // clear content of storage manager (all registered tables)
+  _tables.clear();
 }
 
 }  // namespace opossum

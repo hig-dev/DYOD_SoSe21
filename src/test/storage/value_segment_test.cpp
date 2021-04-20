@@ -60,4 +60,16 @@ TEST_F(StorageValueSegmentTest, GetAtPosition) {
   EXPECT_THROW(int_value_segment[3], std::exception);
 }
 
+TEST_F(StorageValueSegmentTest, GetValues) {
+  int_value_segment.append(0);
+  int_value_segment.append(1);
+  int_value_segment.append(2);
+
+  auto values = int_value_segment.values();
+  EXPECT_EQ(values.size(), 3);
+  EXPECT_EQ(type_cast<int>(values[0]), 0);
+  EXPECT_EQ(type_cast<int>(values[1]), 1);
+  EXPECT_EQ(type_cast<int>(values[2]), 2);
+}
+
 }  // namespace opossum

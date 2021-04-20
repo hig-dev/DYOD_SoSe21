@@ -19,14 +19,15 @@ void Chunk::add_segment(std::shared_ptr<BaseSegment> segment) {
 }
 
 void Chunk::append(const std::vector<AllTypeVariant>& values) {
-  DebugAssert(values.size() == column_count(), "Row size mismatch while appending a new row.");
-  for(ColumnID idx{0}; idx < values.size(); ++idx ){
-    _columns[idx]->append(values[idx]);
+  DebugAssert(values.size() == column_count(), "\"values\" size mismatched the column count while appending a new row.");
+  const auto column_bounds = ColumnID{column_count()};
+  for(auto column_index = ColumnID{0}; column_index < column_bounds; ++column_index){
+    _columns[column_index]->append(values[column_index]);
   }
 }
 
 std::shared_ptr<BaseSegment> Chunk::get_segment(ColumnID column_id) const {
-  DebugAssert(column_id < column_count(), "Column id out of bounds");
+  DebugAssert(column_id < column_count(), "\"column_id\" is out of range.");
   return _columns[column_id];
 }
 

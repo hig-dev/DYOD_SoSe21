@@ -56,7 +56,9 @@ namespace opossum {
 
    auto base_segment = c.get_segment(ColumnID{0});
    EXPECT_EQ(base_segment->size(), 4u);
-   // TODO: EXPECT_THROW(c.get_segment({}), std::exception);
+   if constexpr (HYRISE_DEBUG) {
+     // TODO: EXPECT_THROW(c.get_segment({}), std::exception);
+   }
  }
 
 }  // namespace opossum

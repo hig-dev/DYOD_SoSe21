@@ -56,8 +56,10 @@ TEST_F(StorageValueSegmentTest, GetAtPosition) {
   EXPECT_EQ(type_cast<int>(int_value_segment[1]), 1);
   EXPECT_EQ(type_cast<int>(int_value_segment[2]), 2);
 
-  EXPECT_THROW(int_value_segment[-1], std::exception);
-  EXPECT_THROW(int_value_segment[3], std::exception);
+  if constexpr (HYRISE_DEBUG) {
+    EXPECT_THROW(int_value_segment[-1], std::exception);
+    EXPECT_THROW(int_value_segment[3], std::exception);
+  }
 }
 
 TEST_F(StorageValueSegmentTest, GetValues) {

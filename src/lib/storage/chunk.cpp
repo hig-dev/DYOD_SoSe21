@@ -18,7 +18,7 @@ void Chunk::add_segment(std::shared_ptr<BaseSegment> segment) {
   _columns.emplace_back(segment);
 }
 
-void Chunk::append(const std::vector<const AllTypeVariant>& values) {
+void Chunk::append(const std::vector<AllTypeVariant>& values) {
   DebugAssert(values.size() == column_count(), "\"values\" size mismatched the column count while appending a new row.");
   const auto column_bounds = ColumnID{column_count()};
   for(auto column_index = ColumnID{0}; column_index < column_bounds; ++column_index){

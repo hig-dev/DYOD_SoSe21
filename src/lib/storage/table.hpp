@@ -72,6 +72,17 @@ class Table : private Noncopyable {
   void append(const std::vector<AllTypeVariant>& values);
 
  protected:
-  // Implementation goes here
+  uint32_t _max_chunk_size;
+
+  std::vector<std::shared_ptr<Chunk>> _chunks;
+
+  // these should always have the same length equal the number of columns in the table
+  std::vector<std::string> _column_names;
+  std::vector<std::string> _column_types;
+
+  const std::shared_ptr<BaseSegment> _create_value_segment_for_type(const std::string& type);
+  const std::shared_ptr<Chunk> _create_new_chunk();
+  void _append_new_chunk();
+  void _append_column_to_chunks(const std::string& type);
 };
 }  // namespace opossum

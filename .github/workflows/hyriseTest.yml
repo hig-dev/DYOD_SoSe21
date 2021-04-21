@@ -5,7 +5,7 @@ on: [push]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Debug
-  OPOSSUM_HEADLESS_SETUP: True
+  OPOSSUM_HEADLESS_SETUP: true
 
 jobs:
   build:

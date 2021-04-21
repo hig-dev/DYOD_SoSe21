@@ -23,7 +23,7 @@ jobs:
       shell: bash
       working-directory: ${{github.workspace}}
       run: |
-         export OPOSSUM_HEADLESS_SETUP=true
+         export OPOSSUM_HEADLESS_SETUP=false
          sudo ./install_dependencies.sh
 
     - name: Create Build Environment

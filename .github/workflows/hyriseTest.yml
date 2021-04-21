@@ -5,6 +5,7 @@ on: [push]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Debug
+  OPOSSUM_HEADLESS_SETUP: true
 
 jobs:
   build:
@@ -18,13 +19,14 @@ jobs:
     - uses: actions/checkout@v2
       with:
         submodules: 'recursive'
+        
+    - name: Set Environment
+      run: echo "OPOSSUM_HEADLESS_SETUP=true" >> $GITHUB_ENV
     
     - name: Install Dependencies
       shell: bash
       working-directory: ${{github.workspace}}
-      run: |
-         export OPOSSUM_HEADLESS_SETUP=false
-         sudo ./install_dependencies.sh
+      run: sudo ./install_dependencies.sh
 
     - name: Create Build Environment
       shell: bash

@@ -45,7 +45,10 @@ void Table::emplace_chunk(const std::shared_ptr<Chunk>& chunk) {
   }
 }
 
-ColumnCount Table::column_count() const { return static_cast<ColumnCount>(_column_types.size()); }
+ColumnCount Table::column_count() const {
+  // TODO(hig): Try to remove cast again
+  return static_cast<ColumnCount>(_column_types.size());
+}
 
 uint64_t Table::row_count() const {
   return std::accumulate(

@@ -20,8 +20,7 @@ AllTypeVariant ValueSegment<T>::operator[](const ChunkOffset chunk_offset) const
 
 template <typename T>
 void ValueSegment<T>::append(const AllTypeVariant& val) {
-  auto typed_val = type_cast<T>(val);
-  _values.emplace_back(typed_val);
+  _values.emplace_back(type_cast<T>(val));
 }
 
 template <typename T>

@@ -43,7 +43,7 @@ class Table : private Noncopyable {
   const Chunk& get_chunk(ChunkID chunk_id) const;
 
   // Adds a chunk to the table. If the first chunk is empty, it is replaced.
-  void emplace_chunk(std::shared_ptr<Chunk> chunk);
+  void emplace_chunk(const std::shared_ptr<Chunk>& chunk);
 
   // Returns a list of all column names.
   const std::vector<std::string>& column_names() const;
@@ -72,7 +72,7 @@ class Table : private Noncopyable {
   void append(const std::vector<AllTypeVariant>& values);
 
  protected:
-  const uint32_t _max_chunk_size;
+  const uint32_t _target_chunk_size;
 
   std::vector<std::shared_ptr<Chunk>> _chunks;
 
@@ -80,8 +80,9 @@ class Table : private Noncopyable {
   std::vector<std::string> _column_names;
   std::vector<std::string> _column_types;
 
-  const std::shared_ptr<BaseSegment> _create_value_segment_for_type(const std::string& type);
-  const std::shared_ptr<Chunk> _create_new_chunk();
+  //TODO: If we need this more often, consider to move this to BaseSegment or ValueSegment
+  static std::shared_ptr<BaseSegment> _create_value_segment_for_type(const std::string& type);
+  std::shared_ptr<Chunk> _create_new_chunk();
   void _append_new_chunk();
   void _append_column_to_chunks(const std::string& type);
 };

@@ -16,7 +16,8 @@ StorageManager& StorageManager::get() {
 
 void StorageManager::add_table(const std::string& name, std::shared_ptr<Table> table) {
   auto insertion_result = _tables.insert({name, table});
-  Assert(insertion_result.second, "Table could not be inserted because there was an existing table with the same name.");
+  Assert(insertion_result.second,
+         "Table could not be inserted because there was an existing table with the same name.");
 }
 
 void StorageManager::drop_table(const std::string& name) {

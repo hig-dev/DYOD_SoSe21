@@ -4,8 +4,8 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "storage/table.hpp"
 #include "types.hpp"

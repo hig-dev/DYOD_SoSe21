@@ -80,7 +80,7 @@ class Table : private Noncopyable {
   std::vector<std::string> _column_names;
   std::vector<std::string> _column_types;
 
-  //TODO: If we need this more often, consider to move this to BaseSegment or ValueSegment
+  // TODO(hig): If we need this more often, consider to move this to BaseSegment or ValueSegment
   static std::shared_ptr<BaseSegment> _create_value_segment_for_type(const std::string& type);
   std::shared_ptr<Chunk> _create_new_chunk();
   void _append_new_chunk();

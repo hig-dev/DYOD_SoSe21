@@ -36,27 +36,25 @@ void Table::append(const std::vector<AllTypeVariant>& values) {
 }
 
 void Table::emplace_chunk(const std::shared_ptr<Chunk>& chunk) {
-  if(row_count() == 0) {
+  if (row_count() == 0) {
     // only existing chunk is empty -> replace chunk
     _chunks[0] = chunk;
   } else {
-    // TODO: DebugAssert that the previous chunk is full
+    // TODO(max): DebugAssert that the previous chunk is full
     _chunks.emplace_back(chunk);
   }
 }
 
-ColumnCount Table::column_count() const {
-  return static_cast<ColumnCount>(_column_types.size());
-}
+ColumnCount Table::column_count() const { return static_cast<ColumnCount>(_column_types.size()); }
 
 uint64_t Table::row_count() const {
-  return std::accumulate(_chunks.begin(), _chunks.end(), 0, [](uint64_t sum, std::shared_ptr<Chunk> current_chunk){
+  return std::accumulate(_chunks.begin(), _chunks.end(), 0, [](uint64_t sum, std::shared_ptr<Chunk> current_chunk) {
     return sum + current_chunk->size();
   });
 }
 
 ChunkID Table::chunk_count() const {
-  // TODO: Try to remove cast again
+  // TODO(hig): Try to remove cast again
   return static_cast<ChunkID>(_chunks.size());
 }
 
@@ -65,17 +63,13 @@ ColumnID Table::column_id_by_name(const std::string& column_name) const {
   if (search_index_iter == _column_names.end()) {
     throw std::invalid_argument("Column name does not exists.");
   }
-  // TODO: Try to remove cast again
+  // TODO(hig): Try to remove cast again
   return static_cast<ColumnID>(std::distance(_column_names.begin(), search_index_iter));
 }
 
-ChunkOffset Table::target_chunk_size() const {
-  return _target_chunk_size;
-}
+ChunkOffset Table::target_chunk_size() const { return _target_chunk_size; }
 
-const std::vector<std::string>& Table::column_names() const {
-  return _column_names;
-}
+const std::vector<std::string>& Table::column_names() const { return _column_names; }
 
 const std::string& Table::column_name(const ColumnID column_id) const {
   DebugAssert(column_id < column_count(), "\"column_id\" is out of bounds.");

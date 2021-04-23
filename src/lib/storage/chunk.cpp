@@ -14,14 +14,13 @@
 
 namespace opossum {
 
-void Chunk::add_segment(std::shared_ptr<BaseSegment> segment) {
-  _columns.emplace_back(segment);
-}
+void Chunk::add_segment(std::shared_ptr<BaseSegment> segment) { _columns.emplace_back(segment); }
 
 void Chunk::append(const std::vector<AllTypeVariant>& values) {
-  DebugAssert(values.size() == column_count(), "\"values\" size mismatched the column count while appending a new row.");
+  DebugAssert(values.size() == column_count(),
+              "\"values\" size mismatched the column count while appending a new row.");
   const auto column_bounds = ColumnID{column_count()};
-  for(auto column_index = ColumnID{0}; column_index < column_bounds; ++column_index){
+  for (auto column_index = ColumnID{0}; column_index < column_bounds; ++column_index) {
     _columns[column_index]->append(values[column_index]);
   }
 }
@@ -32,7 +31,7 @@ std::shared_ptr<BaseSegment> Chunk::get_segment(ColumnID column_id) const {
 }
 
 ColumnCount Chunk::column_count() const {
-  // TODO: Try to remove cast again
+  // TODO(hig): Try to remove cast again
   return static_cast<ColumnCount>(_columns.size());
 }
 

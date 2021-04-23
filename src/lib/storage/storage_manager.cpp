@@ -15,14 +15,14 @@ StorageManager& StorageManager::get() {
 }
 
 void StorageManager::add_table(const std::string& name, std::shared_ptr<Table> table) {
-  auto insertion_result = _tables.insert({name, table});
+  const auto insertion_result = _tables.insert({name, table});
   Assert(insertion_result.second,
          "Table could not be inserted because there was an existing table with the same name.");
 }
 
 void StorageManager::drop_table(const std::string& name) {
-  auto dropped_table_count = _tables.erase(name);
-  Assert(dropped_table_count == 1, "Table could not be removed because it was not found with this name.");
+  const auto dropped_table_count = _tables.erase(name);
+  Assert(dropped_table_count == 1, "Table could not be removed because it was not found.");
 }
 
 std::shared_ptr<Table> StorageManager::get_table(const std::string& name) const {
@@ -34,28 +34,26 @@ bool StorageManager::has_table(const std::string& name) const {
 }
 
 std::vector<std::string> StorageManager::table_names() const {
-  auto names = std::vector<std::string>();
-  names.reserve(_tables.size());
-  for (const auto& map_entry : _tables) {
-    names.push_back(map_entry.first);
+  auto table_names = std::vector<std::string>{};
+  table_names.reserve(_tables.size());
+  for (const auto& [table_name, _] : _tables) {
+    table_names.emplace_back(table_name);
   }
-  return names;
+  return table_names;
 }
 
 void StorageManager::print(std::ostream& out) const {
   out << _tables.size() << " tables available:" << std::endl;
-  for (const auto& map_entry : _tables) {
-    const auto& table_name = map_entry.first;
-    const auto& table = map_entry.second;
+  for (const auto& [table_name, table_value] : _tables) {
     out << " - \"" << table_name << "\" ["
-        << "column_count=" << table->column_count() << ","
-        << " row_count=" << table->row_count() << ","
-        << " chunk_count=" << table->chunk_count() << "]" << std::endl;
+        << "column_count=" << table_value->column_count() << ","
+        << " row_count=" << table_value->row_count() << ","
+        << " chunk_count=" << table_value->chunk_count() << "]\n";
   }
 }
 
 void StorageManager::reset() {
-  // clear content of storage manager (all registered tables)
+  // clear all registered tables
   _tables.clear();
 }
 

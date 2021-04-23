@@ -77,7 +77,7 @@ void Table::emplace_chunk(const std::shared_ptr<Chunk> chunk) {
 }
 
 ColumnCount Table::column_count() const {
-  return ColumnCount{_column_types.size()};
+  return static_cast<ColumnCount>(_column_types.size());
 }
 
 uint64_t Table::row_count() const {
@@ -87,7 +87,7 @@ uint64_t Table::row_count() const {
 }
 
 ChunkID Table::chunk_count() const {
-  return ChunkID{_chunks.size()};
+  return static_cast<ChunkID>(_chunks.size());
 }
 
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
@@ -95,7 +95,7 @@ ColumnID Table::column_id_by_name(const std::string& column_name) const {
   if (search_index_iter == _column_names.end()) {
     throw std::invalid_argument("Column name not found");
   }
-  return ColumnID{std::distance(_column_names.begin(), search_index_iter)};
+  return static_cast<ColumnID>(std::distance(_column_names.begin(), search_index_iter));
 }
 
 ChunkOffset Table::target_chunk_size() const {

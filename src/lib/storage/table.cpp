@@ -48,9 +48,9 @@ void Table::emplace_chunk(const std::shared_ptr<Chunk>& chunk) {
 ColumnCount Table::column_count() const { return static_cast<ColumnCount>(_column_types.size()); }
 
 uint64_t Table::row_count() const {
-  return std::accumulate(_chunks.begin(), _chunks.end(), 0, [](uint64_t sum, std::shared_ptr<Chunk> current_chunk) {
-    return sum + current_chunk->size();
-  });
+  return std::accumulate(
+      _chunks.begin(), _chunks.end(), 0,
+      [](uint64_t sum, const std::shared_ptr<Chunk>& current_chunk) { return sum + current_chunk->size(); });
 }
 
 ChunkID Table::chunk_count() const {

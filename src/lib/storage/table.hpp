@@ -36,7 +36,7 @@ class Table : private Noncopyable {
   uint64_t row_count() const;
 
   // returns the number of chunks (cannot exceed ChunkID (uint32_t))
-  ChunkID chunk_count() const;
+  ChunkCount chunk_count() const;
 
   // returns the chunk with the given id
   Chunk& get_chunk(ChunkID chunk_id);

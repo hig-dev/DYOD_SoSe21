@@ -48,7 +48,8 @@ void Table::emplace_chunk(std::unique_ptr<Chunk> chunk) {
 
 ColumnCount Table::column_count() const {
   // TODO(hig): Try to remove cast again
-  return static_cast<ColumnCount>(_column_types.size());
+  const auto column_count = static_cast<uint16_t>(_column_types.size());
+  return ColumnCount{column_count};
 }
 
 uint64_t Table::row_count() const {
@@ -57,18 +58,20 @@ uint64_t Table::row_count() const {
       [](uint64_t sum, const std::shared_ptr<Chunk>& current_chunk) { return sum + current_chunk->size(); });
 }
 
-ChunkID Table::chunk_count() const {
+ChunkCount Table::chunk_count() const {
   // TODO(hig): Try to remove cast again
-  return static_cast<ChunkID>(_chunks.size());
+  const auto chunk_count = static_cast<uint32_t>(_chunks.size());
+  return ChunkCount{chunk_count};
 }
 
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
-  const auto search_index_iter = std::find(_column_names.begin(), _column_names.end(), column_name);
-  if (search_index_iter == _column_names.end()) {
+  const auto find_result_iter = std::find(_column_names.begin(), _column_names.end(), column_name);
+  if (find_result_iter == _column_names.end()) {
     throw std::invalid_argument("Column name does not exists.");
   }
   // TODO(hig): Try to remove cast again
-  return static_cast<ColumnID>(std::distance(_column_names.begin(), search_index_iter));
+  const auto find_index = static_cast<uint16_t>(std::distance(_column_names.begin(), find_result_iter));
+  return ColumnID{find_index};
 }
 
 ChunkOffset Table::target_chunk_size() const { return _target_chunk_size; }

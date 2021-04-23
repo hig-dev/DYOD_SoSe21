@@ -35,13 +35,14 @@ void Table::append(const std::vector<AllTypeVariant>& values) {
   _chunks.back()->append(values);
 }
 
-void Table::emplace_chunk(const std::shared_ptr<Chunk>& chunk) {
+void Table::emplace_chunk(std::unique_ptr<Chunk> chunk) {
+  std::shared_ptr<Chunk> chunk_shared_pointer = std::move(chunk);
   if (row_count() == 0) {
     // only existing chunk is empty -> replace chunk
-    _chunks[0] = chunk;
+    _chunks[0] = chunk_shared_pointer;
   } else {
     // TODO(max): DebugAssert that the previous chunk is full
-    _chunks.emplace_back(chunk);
+    _chunks.emplace_back(chunk_shared_pointer);
   }
 }
 

@@ -44,7 +44,8 @@ class Table : private Noncopyable {
 
   // TODO(hig): We may can remove this.
   // Adds a chunk to the table. If the first chunk is empty, it is replaced.
-  void emplace_chunk(const std::shared_ptr<Chunk>& chunk);
+  // This method intentionally takes the unique ownership of the chunk.
+  void emplace_chunk(std::unique_ptr<Chunk> chunk);
 
   // Returns a list of all column names.
   const std::vector<std::string>& column_names() const;

@@ -36,13 +36,12 @@ void Table::append(const std::vector<AllTypeVariant>& values) {
 }
 
 void Table::emplace_chunk(std::unique_ptr<Chunk> chunk) {
-  std::shared_ptr<Chunk> chunk_shared_pointer = std::move(chunk);
   if (row_count() == 0) {
     // only existing chunk is empty -> replace chunk
-    _chunks[0] = chunk_shared_pointer;
+    _chunks[0] = std::move(chunk);
   } else {
     // TODO(max): DebugAssert that the previous chunk is full
-    _chunks.emplace_back(chunk_shared_pointer);
+    _chunks.emplace_back(std::move(chunk));
   }
 }
 
@@ -55,7 +54,7 @@ ColumnCount Table::column_count() const {
 uint64_t Table::row_count() const {
   return std::accumulate(
       _chunks.begin(), _chunks.end(), 0,
-      [](uint64_t sum, const std::shared_ptr<Chunk>& current_chunk) { return sum + current_chunk->size(); });
+      [](uint64_t sum, const auto& current_chunk) { return sum + current_chunk->size(); });
 }
 
 ChunkCount Table::chunk_count() const {
@@ -98,18 +97,13 @@ const Chunk& Table::get_chunk(ChunkID chunk_id) const {
   return *_chunks[chunk_id];
 }
 
-std::shared_ptr<Chunk> Table::_create_new_chunk() {
-  auto new_chunk = std::make_shared<Chunk>();
-  _chunks.emplace_back(new_chunk);
-  return new_chunk;
-}
-
 void Table::_append_new_chunk() {
-  const auto& new_chunk = _create_new_chunk();
+  auto new_chunk = std::make_unique<Chunk>();
   for (const auto& column_type : _column_types) {
     // append existing columns as segments to new chunk
     new_chunk->add_segment(_create_value_segment_for_type(column_type));
   }
+  _chunks.emplace_back(std::move(new_chunk));
 }
 
 std::shared_ptr<BaseSegment> Table::_create_value_segment_for_type(const std::string& type) {

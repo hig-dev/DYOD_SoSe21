@@ -26,7 +26,7 @@ jobs:
     - name: Install Dependencies
       shell: bash
       working-directory: ${{github.workspace}}
-      run: sudo ./install_dependencies.sh
+      run: sudo -E ./install_dependencies.sh
 
     - name: Create Build Environment
       shell: bash

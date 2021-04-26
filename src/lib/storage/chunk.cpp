@@ -14,9 +14,7 @@
 
 namespace opossum {
 
-void Chunk::add_segment(std::shared_ptr<BaseSegment> segment){
-  _columns.emplace_back(segment);
-}
+void Chunk::add_segment(std::shared_ptr<BaseSegment> segment) { _columns.emplace_back(segment); }
 
 void Chunk::append(const std::vector<AllTypeVariant>& values) {
   DebugAssert(values.size() == column_count(),
@@ -32,9 +30,7 @@ std::shared_ptr<BaseSegment> Chunk::get_segment(ColumnID column_id) const {
   return _columns[column_id];
 }
 
-ColumnCount Chunk::column_count() const {
-  return ColumnCount{static_cast<uint16_t>(_columns.size())};
-}
+ColumnCount Chunk::column_count() const { return ColumnCount{static_cast<uint16_t>(_columns.size())}; }
 
 ChunkOffset Chunk::size() const {
   if (_columns.empty()) {

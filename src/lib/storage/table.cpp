@@ -17,14 +17,15 @@
 
 namespace opossum {
 
+Column::Column(std::string name, std::string type) : name(std::move(name)), type(std::move(type)) {}
+
 Table::Table(const ChunkOffset target_chunk_size) : _target_chunk_size{target_chunk_size} {
   // create initial chunk
   _append_new_chunk();
 }
 
 void Table::add_column(const std::string& name, const std::string& type) {
-  _column_names.emplace_back(name);
-  _column_types.emplace_back(type);
+  _columns.emplace_back(name, type);
   _append_column_to_chunks(type);
 }
 
@@ -47,44 +48,51 @@ void Table::emplace_chunk(std::unique_ptr<Chunk> chunk) {
 
 ColumnCount Table::column_count() const {
   // TODO(hig): Try to remove cast again
-  const auto column_count = static_cast<uint16_t>(_column_types.size());
+  const auto column_count = static_cast<uint16_t>(_columns.size());
   return ColumnCount{column_count};
 }
 
 uint64_t Table::row_count() const {
   return std::accumulate(
       _chunks.begin(), _chunks.end(), 0,
-      [](uint64_t sum, const auto& current_chunk) { return sum + current_chunk->size(); });
+      [](uint64_t sum, const std::shared_ptr<Chunk>& current_chunk) { return sum + current_chunk->size(); });
 }
 
-ChunkCount Table::chunk_count() const {
+ChunkID Table::chunk_count() const {
   // TODO(hig): Try to remove cast again
   const auto chunk_count = static_cast<uint32_t>(_chunks.size());
   return ChunkCount{chunk_count};
 }
 
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
-  const auto find_result_iter = std::find(_column_names.begin(), _column_names.end(), column_name);
-  if (find_result_iter == _column_names.end()) {
+  const auto find_result_iter = std::find(_columns.begin(), _columns.end(), column_name);
+  if (find_result_iter == _columns.end()) {
     throw std::invalid_argument("Column name does not exists.");
   }
   // TODO(hig): Try to remove cast again
-  const auto find_index = static_cast<uint16_t>(std::distance(_column_names.begin(), find_result_iter));
+  const auto find_index = static_cast<uint16_t>(std::distance(_colums.begin(), find_result_iter));
   return ColumnID{find_index};
 }
 
 ChunkOffset Table::target_chunk_size() const { return _target_chunk_size; }
 
-const std::vector<std::string>& Table::column_names() const { return _column_names; }
+const std::vector<std::string> Table::column_names() const {
+  auto column_names = std::vector<std::string>();
+  column_names.reserve(_columns.size());
+  for (const auto& column : _columns) {
+    column_names.emplace_back(column.name);
+  }
+  return column_names;
+}
 
 const std::string& Table::column_name(const ColumnID column_id) const {
   DebugAssert(column_id < column_count(), "\"column_id\" is out of bounds.");
-  return _column_names[column_id];
+  return _columns[column_id].name;
 }
 
 const std::string& Table::column_type(const ColumnID column_id) const {
   DebugAssert(column_id < column_count(), "\"column_id\" is out of bounds.");
-  return _column_types[column_id];
+  return _columns[column_id].type;
 }
 
 Chunk& Table::get_chunk(ChunkID chunk_id) {

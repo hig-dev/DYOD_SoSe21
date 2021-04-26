@@ -48,7 +48,7 @@ void Table::emplace_chunk(const std::shared_ptr<Chunk>& chunk) {
 
 ColumnCount Table::column_count() const {
   // TODO(hig): Try to remove cast again
-  return static_cast<ColumnCount>(_columns.size());
+  return ColumnCount(_columns.size());
 }
 
 uint64_t Table::row_count() const {
@@ -59,7 +59,7 @@ uint64_t Table::row_count() const {
 
 ChunkID Table::chunk_count() const {
   // TODO(hig): Try to remove cast again
-  return static_cast<ChunkID>(_chunks.size());
+  return ChunkID(_chunks.size());
 }
 
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
@@ -69,18 +69,18 @@ ColumnID Table::column_id_by_name(const std::string& column_name) const {
     throw std::invalid_argument("Column name does not exists.");
   }
   // TODO(hig): Try to remove cast again
-  return static_cast<ColumnID>(std::distance(_columns.begin(), search_index_iter));
+  return ColumnID(std::distance(_columns.begin(), search_index_iter));
 }
 
 ChunkOffset Table::target_chunk_size() const { return _target_chunk_size; }
 
-const std::vector<std::string>& Table::column_names() const {
-  auto column_names = std::make_shared<std::vector<std::string>>();
-  column_names->reserve(_columns.size());
+const std::vector<std::string> Table::column_names() const {
+  auto column_names = std::vector<std::string>();
+  column_names.reserve(_columns.size());
   for (const auto& column : _columns) {
-    column_names->emplace_back(column.name);
+    column_names.emplace_back(column.name);
   }
-  return *column_names;
+  return column_names;
 }
 
 const std::string& Table::column_name(const ColumnID column_id) const {

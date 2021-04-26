@@ -76,7 +76,7 @@ class Table : private Noncopyable {
  protected:
   const uint32_t _target_chunk_size;
 
-  std::vector<std::shared_ptr<Chunk>> _chunks;
+  std::vector<std::unique_ptr<Chunk>> _chunks;
 
   // these should always have the same length equal the number of columns in the table
   std::vector<std::string> _column_names;
@@ -84,7 +84,6 @@ class Table : private Noncopyable {
 
   // TODO(hig): If we need this more often, consider to move this to BaseSegment or ValueSegment
   static std::shared_ptr<BaseSegment> _create_value_segment_for_type(const std::string& type);
-  std::shared_ptr<Chunk> _create_new_chunk();
   void _append_new_chunk();
   void _append_column_to_chunks(const std::string& type);
 };

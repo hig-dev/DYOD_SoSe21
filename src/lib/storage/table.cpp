@@ -42,27 +42,24 @@ void Table::emplace_chunk(std::unique_ptr<Chunk> chunk) {
     // only existing chunk is empty -> replace chunk
     _chunks[0] = std::move(chunk);
   } else {
-    DebugAssert(_chunks.back()->size() != _target_chunk_size, "Cannot emplace chunk because current last chunk is not full.");
+    DebugAssert(_chunks.back()->size() != _target_chunk_size,
+                "Cannot emplace chunk because current last chunk is not full.");
     _chunks.emplace_back(std::move(chunk));
   }
 }
 
-ColumnCount Table::column_count() const {
-  return ColumnCount{static_cast<uint16_t>(_columns.size())};
-}
+ColumnCount Table::column_count() const { return ColumnCount{static_cast<uint16_t>(_columns.size())}; }
 
 uint64_t Table::row_count() const {
-  return std::accumulate(
-      _chunks.begin(), _chunks.end(), 0,
-      [](uint64_t sum, const auto& current_chunk) { return sum + current_chunk->size(); });
+  return std::accumulate(_chunks.begin(), _chunks.end(), 0,
+                         [](uint64_t sum, const auto& current_chunk) { return sum + current_chunk->size(); });
 }
 
-ChunkCount Table::chunk_count() const {
-  return ChunkCount{static_cast<uint32_t>(_chunks.size())};
-}
+ChunkCount Table::chunk_count() const { return ChunkCount{static_cast<uint32_t>(_chunks.size())}; }
 
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
-  const auto find_result_iter = std::find_if(_columns.begin(), _columns.end(), [&column_name](const Column& c) { return c.name == column_name; });
+  const auto find_result_iter =
+      std::find_if(_columns.begin(), _columns.end(), [&column_name](const Column& c) { return c.name == column_name; });
   if (find_result_iter == _columns.end()) {
     throw std::invalid_argument("Column name does not exists.");
   }

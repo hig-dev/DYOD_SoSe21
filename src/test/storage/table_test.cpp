@@ -42,9 +42,7 @@ TEST_F(StorageTableTest, GetChunk) {
   }
 }
 
-TEST_F(StorageTableTest, ColumnCount){
-  EXPECT_EQ(t.column_count(), 2u);
-}
+TEST_F(StorageTableTest, ColumnCount) { EXPECT_EQ(t.column_count(), 2u); }
 
 TEST_F(StorageTableTest, RowCount) {
   EXPECT_EQ(t.row_count(), 0u);
@@ -82,8 +80,6 @@ TEST_F(StorageTableTest, GetColumnIdByName) {
   EXPECT_THROW(t.column_id_by_name("no_column_name"), std::exception);
 }
 
-TEST_F(StorageTableTest, GetChunkSize) {
-  EXPECT_EQ(t.target_chunk_size(), 2u);
-}
+TEST_F(StorageTableTest, GetChunkSize) { EXPECT_EQ(t.target_chunk_size(), 2u); }
 
 }  // namespace opossum

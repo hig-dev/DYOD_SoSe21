@@ -55,22 +55,22 @@ ColumnCount Table::column_count() const {
 uint64_t Table::row_count() const {
   return std::accumulate(
       _chunks.begin(), _chunks.end(), 0,
-      [](uint64_t sum, const std::shared_ptr<Chunk>& current_chunk) { return sum + current_chunk->size(); });
+      [](uint64_t sum, const auto& current_chunk) { return sum + current_chunk->size(); });
 }
 
-ChunkID Table::chunk_count() const {
+ChunkCount Table::chunk_count() const {
   // TODO(hig): Try to remove cast again
   const auto chunk_count = static_cast<uint32_t>(_chunks.size());
   return ChunkCount{chunk_count};
 }
 
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
-  const auto find_result_iter = std::find(_columns.begin(), _columns.end(), column_name);
+  const auto find_result_iter = std::find_if(_columns.begin(), _columns.end(), [&column_name](const Column& c) { return c.name == column_name; });
   if (find_result_iter == _columns.end()) {
     throw std::invalid_argument("Column name does not exists.");
   }
   // TODO(hig): Try to remove cast again
-  const auto find_index = static_cast<uint16_t>(std::distance(_colums.begin(), find_result_iter));
+  const auto find_index = static_cast<uint16_t>(std::distance(_columns.begin(), find_result_iter));
   return ColumnID{find_index};
 }
 
@@ -108,9 +108,9 @@ const Chunk& Table::get_chunk(ChunkID chunk_id) const {
 void Table::_append_new_chunk() {
   auto new_chunk = std::make_unique<Chunk>();
 
-  for (const auto& column_type : _column_types) {
+  for (const auto& column : _columns) {
     // append existing columns as segments to new chunk
-    new_chunk->add_segment(_create_value_segment_for_type(column_type));
+    new_chunk->add_segment(_create_value_segment_for_type(column.type));
   }
   _chunks.emplace_back(std::move(new_chunk));
 }

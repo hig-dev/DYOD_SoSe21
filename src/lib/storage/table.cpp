@@ -99,6 +99,7 @@ const Chunk& Table::get_chunk(ChunkID chunk_id) const {
 
 void Table::_append_new_chunk() {
   auto new_chunk = std::make_unique<Chunk>();
+
   for (const auto& column_type : _column_types) {
     // append existing columns as segments to new chunk
     new_chunk->add_segment(_create_value_segment_for_type(column_type));

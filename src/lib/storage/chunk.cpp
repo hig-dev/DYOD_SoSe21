@@ -33,9 +33,7 @@ std::shared_ptr<BaseSegment> Chunk::get_segment(ColumnID column_id) const {
 }
 
 ColumnCount Chunk::column_count() const {
-  // TODO(hig): Try to remove cast again
-  const auto column_count = static_cast<uint16_t>(_columns.size());
-  return ColumnCount{column_count};
+  return ColumnCount{static_cast<uint16_t>(_columns.size())};
 }
 
 ChunkOffset Chunk::size() const {

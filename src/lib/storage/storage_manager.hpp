@@ -42,7 +42,7 @@ class StorageManager : private Noncopyable {
   StorageManager(StorageManager&&) = delete;
 
  protected:
-  StorageManager() {}
+  StorageManager() = default;
   StorageManager& operator=(StorageManager&&) = default;
 
   std::unordered_map<std::string, std::shared_ptr<Table>> _tables;

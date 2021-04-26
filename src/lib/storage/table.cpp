@@ -36,12 +36,13 @@ void Table::append(const std::vector<AllTypeVariant>& values) {
   _chunks.back()->append(values);
 }
 
+// TODO(max): write test
 void Table::emplace_chunk(std::unique_ptr<Chunk> chunk) {
   if (row_count() == 0) {
     // only existing chunk is empty -> replace chunk
     _chunks[0] = std::move(chunk);
   } else {
-    // TODO(max): DebugAssert that the previous chunk is full
+    DebugAssert(_chunks.back()->size() != _target_chunk_size, "Cannot emplace chunk because current last chunk is not full.");
     _chunks.emplace_back(std::move(chunk));
   }
 }

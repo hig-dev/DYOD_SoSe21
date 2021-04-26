@@ -47,7 +47,6 @@ class Table : private Noncopyable {
   Chunk& get_chunk(ChunkID chunk_id);
   const Chunk& get_chunk(ChunkID chunk_id) const;
 
-  // TODO(hig): We may can remove this.
   // Adds a chunk to the table. If the first chunk is empty, it is replaced.
   // This method intentionally takes the unique ownership of the chunk.
   void emplace_chunk(std::unique_ptr<Chunk> chunk);

@@ -57,7 +57,7 @@ TEST_F(StorageChunkTest, RetrieveSegment) {
   auto base_segment = c.get_segment(ColumnID{0});
   EXPECT_EQ(base_segment->size(), 4u);
   if constexpr (HYRISE_DEBUG) {
-    // TODO(max): EXPECT_THROW(c.get_segment({}), std::exception);
+    EXPECT_THROW(c.get_segment(ColumnID{42}), std::exception);
   }
 }
 

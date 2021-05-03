@@ -10,38 +10,47 @@
 namespace opossum {
 
 StorageManager& StorageManager::get() {
-  return *(new StorageManager());
-  // A really hacky fix to get the tests to run - replace this with your implementation
+  static StorageManager _instance;
+  return _instance;
 }
 
 void StorageManager::add_table(const std::string& name, std::shared_ptr<Table> table) {
-  // Implementation goes here
+  const auto insertion_result = _tables.insert({name, table});
+  Assert(insertion_result.second,
+         "Table could not be inserted because there was an existing table with the same name.");
 }
 
 void StorageManager::drop_table(const std::string& name) {
-  // Implementation goes here
+  const auto dropped_table_count = _tables.erase(name);
+  Assert(dropped_table_count == 1, "Table could not be removed because it was not found.");
 }
 
-std::shared_ptr<Table> StorageManager::get_table(const std::string& name) const {
-  // Implementation goes here
-  return nullptr;
-}
+std::shared_ptr<Table> StorageManager::get_table(const std::string& name) const { return _tables.at(name); }
 
-bool StorageManager::has_table(const std::string& name) const {
-  // Implementation goes here
-  return false;
-}
+bool StorageManager::has_table(const std::string& name) const { return _tables.contains(name); }
 
 std::vector<std::string> StorageManager::table_names() const {
-  throw std::runtime_error("Implement StorageManager::table_names");
+  auto table_names = std::vector<std::string>{};
+  table_names.reserve(_tables.size());
+  for (const auto& [table_name, _] : _tables) {
+    table_names.emplace_back(table_name);
+  }
+  return table_names;
 }
 
 void StorageManager::print(std::ostream& out) const {
-  // Implementation goes here
+  out << _tables.size() << " tables available:" << std::endl;
+  for (const auto& [table_name, table_value] : _tables) {
+    out << " - \"" << table_name << "\" ["
+        << "column_count=" << table_value->column_count() << ","
+        << " row_count=" << table_value->row_count() << ","
+        << " chunk_count=" << table_value->chunk_count() << "]\n";
+  }
 }
 
 void StorageManager::reset() {
-  // Implementation goes here;
+  // clear all registered tables
+  _tables.clear();
 }
 
 }  // namespace opossum

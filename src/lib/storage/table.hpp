@@ -18,6 +18,11 @@
 namespace opossum {
 
 class TableStatistics;
+struct Column {
+  std::string name;
+  std::string type;
+  Column(std::string name, std::string type);
+};
 
 // A table is partitioned horizontally into a number of chunks
 class Table : private Noncopyable {
@@ -36,17 +41,18 @@ class Table : private Noncopyable {
   uint64_t row_count() const;
 
   // returns the number of chunks (cannot exceed ChunkID (uint32_t))
-  ChunkID chunk_count() const;
+  ChunkCount chunk_count() const;
 
   // returns the chunk with the given id
   Chunk& get_chunk(ChunkID chunk_id);
   const Chunk& get_chunk(ChunkID chunk_id) const;
 
   // Adds a chunk to the table. If the first chunk is empty, it is replaced.
-  void emplace_chunk(Chunk chunk);
+  // This method intentionally takes the unique ownership of the chunk.
+  void emplace_chunk(std::unique_ptr<Chunk> chunk);
 
   // Returns a list of all column names.
-  const std::vector<std::string>& column_names() const;
+  const std::vector<std::string> column_names() const;
 
   // returns the column name of the nth column
   const std::string& column_name(const ColumnID column_id) const;
@@ -72,6 +78,14 @@ class Table : private Noncopyable {
   void append(const std::vector<AllTypeVariant>& values);
 
  protected:
-  // Implementation goes here
+  const uint32_t _target_chunk_size;
+
+  std::vector<std::unique_ptr<Chunk>> _chunks;
+  std::vector<Column> _columns;
+
+  // TODO(hig): If we need this more often, consider to move this to BaseSegment or ValueSegment
+  static std::shared_ptr<BaseSegment> _create_value_segment_for_type(const std::string& type);
+  void _append_new_chunk();
+  void _append_column_to_chunks(const std::string& type);
 };
 }  // namespace opossum

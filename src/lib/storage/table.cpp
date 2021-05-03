@@ -25,7 +25,7 @@ Table::Table(const ChunkOffset target_chunk_size) : _target_chunk_size{target_ch
 }
 
 void Table::add_column(const std::string& name, const std::string& type) {
-  Assert(row_count() == 0, "The table already contains rows, column scheme can not be altered anymore.")
+  Assert(row_count() == 0, "The table already contains rows, column scheme can not be altered anymore.");
   _columns.emplace_back(name, type);
   _append_column_to_chunks(type);
 }
@@ -39,12 +39,15 @@ void Table::append(const std::vector<AllTypeVariant>& values) {
 
 // TODO(max): write test
 void Table::emplace_chunk(std::unique_ptr<Chunk> chunk) {
-  auto last_chunk = _chunks.back();
+  auto last_chunk = std::move(_chunks.back());
+  _chunks.pop_back();
   if(last_chunk->size() == 0) {
     last_chunk = std::move(chunk);
+    _chunks.emplace_back(std::move(last_chunk));
   } else {
     Assert(last_chunk->size() != _target_chunk_size,
                 "Cannot emplace chunk because current last chunk is not full.");
+    _chunks.emplace_back(std::move(last_chunk));
     _chunks.emplace_back(std::move(chunk));
   }
 }

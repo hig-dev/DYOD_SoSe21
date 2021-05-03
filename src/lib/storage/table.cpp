@@ -25,6 +25,7 @@ Table::Table(const ChunkOffset target_chunk_size) : _target_chunk_size{target_ch
 }
 
 void Table::add_column(const std::string& name, const std::string& type) {
+  Assert(row_count() == 0, "The table already contains rows, column scheme can not be altered anymore.")
   _columns.emplace_back(name, type);
   _append_column_to_chunks(type);
 }
@@ -38,11 +39,11 @@ void Table::append(const std::vector<AllTypeVariant>& values) {
 
 // TODO(max): write test
 void Table::emplace_chunk(std::unique_ptr<Chunk> chunk) {
-  if (row_count() == 0) {
-    // only existing chunk is empty -> replace chunk
-    _chunks[0] = std::move(chunk);
+  auto last_chunk = _chunks.back();
+  if(last_chunk->size() == 0) {
+    last_chunk = std::move(chunk);
   } else {
-    DebugAssert(_chunks.back()->size() != _target_chunk_size,
+    Assert(last_chunk->size() != _target_chunk_size,
                 "Cannot emplace chunk because current last chunk is not full.");
     _chunks.emplace_back(std::move(chunk));
   }
@@ -60,9 +61,7 @@ ChunkCount Table::chunk_count() const { return ChunkCount{static_cast<uint32_t>(
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
   const auto find_result_iter =
       std::find_if(_columns.begin(), _columns.end(), [&column_name](const Column& c) { return c.name == column_name; });
-  if (find_result_iter == _columns.end()) {
-    throw std::invalid_argument("Column name does not exists.");
-  }
+ Assert(find_result_iter != _columns.end(), "Column name does not exist.");
   const auto find_index = static_cast<uint16_t>(std::distance(_columns.begin(), find_result_iter));
   return ColumnID{find_index};
 }
@@ -79,23 +78,19 @@ const std::vector<std::string> Table::column_names() const {
 }
 
 const std::string& Table::column_name(const ColumnID column_id) const {
-  DebugAssert(column_id < column_count(), "\"column_id\" is out of bounds.");
-  return _columns[column_id].name;
+  return _columns.at(column_id).name;
 }
 
 const std::string& Table::column_type(const ColumnID column_id) const {
-  DebugAssert(column_id < column_count(), "\"column_id\" is out of bounds.");
-  return _columns[column_id].type;
+  return _columns.at(column_id).type;
 }
 
 Chunk& Table::get_chunk(ChunkID chunk_id) {
-  DebugAssert(chunk_id < column_count(), "\"chunk_id\" is out of bounds.");
-  return *_chunks[chunk_id];
+  return *_chunks.at(chunk_id);
 }
 
 const Chunk& Table::get_chunk(ChunkID chunk_id) const {
-  DebugAssert(chunk_id < column_count(), "\"column_id\" is out of bounds.");
-  return *_chunks[chunk_id];
+  return *_chunks.at(chunk_id);
 }
 
 void Table::_append_new_chunk() {
@@ -118,7 +113,6 @@ std::shared_ptr<BaseSegment> Table::_create_value_segment_for_type(const std::st
 }
 
 void Table::_append_column_to_chunks(const std::string& type) {
-  DebugAssert(row_count() == 0, "Cannot append new columns to already existing chunks.");
   for (const auto& chunk : _chunks) {
     // append new segment to every existing chunk
     chunk->add_segment(_create_value_segment_for_type(type));

@@ -122,4 +122,6 @@ void Table::_append_column_to_chunks(const std::string& type) {
   }
 }
 
+void Table::compress_chunk(ChunkID chunk_id) { throw std::runtime_error("Implement Table::compress_chunk"); }
+
 }  // namespace opossum

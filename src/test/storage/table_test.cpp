@@ -89,8 +89,8 @@ TEST_F(StorageTableTest, CompressChunk) {
   t.append({2, "Alexander"});
   t.compress_chunk(ChunkID{0});
   auto& compressed_chunk = (t.get_chunk(ChunkID{0}));
-  auto compressed_segment = compressed_chunk.get_segment(ColumnID{0});
-  EXPECT_NE(std::dynamic_pointer_cast<DictionarySegment<int>>(compressed_segment), nullptr);
+  auto compressed_segment = compressed_chunk.get_segment(ColumnID{1});
+  EXPECT_NE(std::dynamic_pointer_cast<DictionarySegment<std::string>>(compressed_segment), nullptr);
 }
 
 }  // namespace opossum

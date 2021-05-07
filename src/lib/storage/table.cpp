@@ -115,23 +115,36 @@ void Table::compress_chunk(ChunkID chunk_id) {
   const auto& chunk_to_compress = get_chunk(chunk_id);
   const auto chunk_size = chunk_to_compress.size();
 
+  auto threads = std::vector<std::thread>{};
+  threads.reserve(chunk_size);
+
+  // Compress each segment in parallel and store the compressed segments in a vector
   auto compressed_segments = std::vector<std::shared_ptr<BaseSegment>>{chunk_size};
   for (auto column_id = ColumnID{0}; column_id < chunk_size; ++column_id) {
     const auto segment_to_compress = chunk_to_compress.get_segment(column_id);
     const auto segment_type = _columns[column_id].type;
 
-    resolve_data_type(segment_type, [&compressed_segments, column_id, segment_to_compress](const auto data_type_t) {
-      using ColumnDataType = typename decltype(data_type_t)::type;
-      compressed_segments[column_id] = std::make_shared<DictionarySegment<ColumnDataType>>(segment_to_compress);
+    threads.emplace_back([&compressed_segments, segment_type, column_id, segment_to_compress] {
+      resolve_data_type(segment_type, [&compressed_segments, column_id, segment_to_compress](const auto data_type_t) {
+        using ColumnDataType = typename decltype(data_type_t)::type;
+        compressed_segments[column_id] = std::make_shared<DictionarySegment<ColumnDataType>>(segment_to_compress);
+      });
     });
   }
 
-  auto compressed_chunk = std::make_shared<Chunk>();
+  // Wait for the completion of the threads
+  for (auto& thread : threads) {
+    thread.join();
+  }
 
+  // Create a new compressed chunk using the compressed segments vector
+  auto compressed_chunk = std::make_shared<Chunk>();
   for (auto column_id = ColumnID{0}; column_id < chunk_size; ++column_id) {
     compressed_chunk->add_segment(compressed_segments[column_id]);
   }
 
+  // Swap the uncompressed chunk with the newly created compressed chunk
+  const std::lock_guard<std::mutex> lock(_swap_chunk_mutex);
   _chunks[chunk_id] = compressed_chunk;
 }
 

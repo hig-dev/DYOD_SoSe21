@@ -82,6 +82,7 @@ class Table : private Noncopyable {
 
  protected:
   const uint32_t _target_chunk_size;
+  mutable std::mutex _swap_chunk_mutex;
 
   std::vector<std::shared_ptr<Chunk>> _chunks;
   std::vector<Column> _columns;

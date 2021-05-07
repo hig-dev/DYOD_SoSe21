@@ -27,5 +27,8 @@ class BaseAttributeVector : private Noncopyable {
 
   // returns the width of biggest value id in bytes
   virtual AttributeVectorWidth width() const = 0;
+
+  // returns the calculated memory usage
+  virtual size_t estimate_memory_usage() const = 0;
 };
 }  // namespace opossum

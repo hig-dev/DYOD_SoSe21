@@ -12,8 +12,7 @@ template <typename uintX_t>
 class FixedSizeAttributeVector : public BaseAttributeVector {
  public:
   explicit FixedSizeAttributeVector(const std::vector<ValueID>& attribute_vector_to_copy) {
-    _size = attribute_vector_to_copy.size();
-    _attribute_vector.reserve(_size);
+    _attribute_vector.reserve(attribute_vector_to_copy.size());
     for (const auto value_id : attribute_vector_to_copy){
       _attribute_vector.emplace_back(value_id);
     }
@@ -28,12 +27,13 @@ class FixedSizeAttributeVector : public BaseAttributeVector {
     _attribute_vector[i] = value_id;
   }
 
-  size_t size() const override { return _size; }
+  size_t size() const override { return _attribute_vector.size(); }
 
   AttributeVectorWidth width() const override { return sizeof(uintX_t); }
 
+  size_t estimate_memory_usage() const override { return _attribute_vector.capacity() * sizeof(uintX_t); }
+
  private:
-  size_t _size;
   std::vector<uintX_t> _attribute_vector;
 };
 

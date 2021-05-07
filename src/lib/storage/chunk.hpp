@@ -40,6 +40,9 @@ class Chunk : private Noncopyable {
   // Returns the segment at a given position
   std::shared_ptr<BaseSegment> get_segment(ColumnID column_id) const;
 
+  // returns the calculated memory usage
+  size_t estimate_memory_usage() const;
+
  protected:
   std::vector<std::shared_ptr<BaseSegment>> _columns;
 };

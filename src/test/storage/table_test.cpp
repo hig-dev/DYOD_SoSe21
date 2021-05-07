@@ -7,6 +7,7 @@
 #include "../base_test.hpp"
 #include "gtest/gtest.h"
 
+#include "../../lib/storage/dictionary_segment.hpp"
 #include "../lib/resolve_type.hpp"
 #include "../lib/storage/table.hpp"
 
@@ -81,5 +82,15 @@ TEST_F(StorageTableTest, GetColumnIdByName) {
 }
 
 TEST_F(StorageTableTest, GetChunkSize) { EXPECT_EQ(t.target_chunk_size(), 2u); }
+
+TEST_F(StorageTableTest, CompressChunk) {
+  t.append({0, "Alexander"});
+  t.append({1, "Bill"});
+  t.append({2, "Alexander"});
+  t.compress_chunk(ChunkID{0});
+  auto& compressed_chunk = (t.get_chunk(ChunkID{0}));
+  auto compressed_segment = compressed_chunk.get_segment(ColumnID{0});
+  EXPECT_NE(std::dynamic_pointer_cast<DictionarySegment<int>>(compressed_segment), nullptr);
+}
 
 }  // namespace opossum

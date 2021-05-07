@@ -13,14 +13,12 @@ class FixedSizeAttributeVector : public BaseAttributeVector {
  public:
   explicit FixedSizeAttributeVector(const std::vector<ValueID>& attribute_vector_to_copy) {
     _attribute_vector.reserve(attribute_vector_to_copy.size());
-    for (const auto value_id : attribute_vector_to_copy){
+    for (const auto value_id : attribute_vector_to_copy) {
       _attribute_vector.emplace_back(value_id);
     }
   }
 
-  ValueID get(const size_t i) const override {
-    return ValueID{_attribute_vector.at(i)};
-  }
+  ValueID get(const size_t i) const override { return ValueID{_attribute_vector.at(i)}; }
 
   void set(const size_t i, const ValueID value_id) override {
     DebugAssert(i < size(), "The index is out of bounds.");

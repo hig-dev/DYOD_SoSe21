@@ -38,14 +38,14 @@ void Table::append(const std::vector<AllTypeVariant>& values) {
 }
 
 // TODO(max): write test
-void Table::emplace_chunk(std::unique_ptr<Chunk> chunk) {
+void Table::emplace_chunk(std::shared_ptr<Chunk> chunk) {
   if (row_count() == 0) {
     // only existing chunk is empty -> sreplace chunk
-    _chunks[0] = std::move(chunk);
+    _chunks[0] = chunk;
   } else {
     Assert(_chunks.back()->size() != _target_chunk_size,
            "Cannot emplace chunk because current last chunk is not full.");
-    _chunks.emplace_back(std::move(chunk));
+    _chunks.emplace_back(chunk);
   }
 }
 
@@ -86,13 +86,13 @@ Chunk& Table::get_chunk(ChunkID chunk_id) { return *_chunks.at(chunk_id); }
 const Chunk& Table::get_chunk(ChunkID chunk_id) const { return *_chunks.at(chunk_id); }
 
 void Table::_append_new_chunk() {
-  auto new_chunk = std::make_unique<Chunk>();
+  auto new_chunk = std::make_shared<Chunk>();
 
   for (const auto& column : _columns) {
     // append existing columns as segments to new chunk
     new_chunk->add_segment(_create_value_segment_for_type(column.type));
   }
-  _chunks.emplace_back(std::move(new_chunk));
+  _chunks.emplace_back(new_chunk);
 }
 
 std::shared_ptr<BaseSegment> Table::_create_value_segment_for_type(const std::string& type) {
@@ -112,41 +112,27 @@ void Table::_append_column_to_chunks(const std::string& type) {
 }
 
 void Table::compress_chunk(ChunkID chunk_id) {
-  const auto& uncompressed_chunk = get_chunk(chunk_id);
-  const auto chunk_size = uncompressed_chunk.size();
-
-  // new empty chunk
-  auto compressed_chunk = std::make_unique<Chunk>();
-
-  auto threads = std::vector<std::thread>{};
-  threads.reserve(chunk_size);
+  const auto& chunk_to_compress = get_chunk(chunk_id);
+  const auto chunk_size = chunk_to_compress.size();
 
   auto compressed_segments = std::vector<std::shared_ptr<BaseSegment>>{chunk_size};
   for (auto column_id = ColumnID{0}; column_id < chunk_size; ++column_id) {
-    const auto base_segment = uncompressed_chunk.get_segment(column_id);
+    const auto segment_to_compress = chunk_to_compress.get_segment(column_id);
     const auto segment_type = _columns[column_id].type;
 
-    threads.emplace_back([column_id, &compressed_segments, &base_segment, &segment_type]() {
-      // build dictionary compressed segment
-      resolve_data_type(segment_type, [&](const auto data_type_t) {
-        using ColumnDataType = typename decltype(data_type_t)::type;
-        compressed_segments[column_id] = std::make_shared<DictionarySegment<ColumnDataType>>(base_segment);
-      });
+    resolve_data_type(segment_type, [&compressed_segments, column_id, segment_to_compress](const auto data_type_t) {
+      using ColumnDataType = typename decltype(data_type_t)::type;
+      compressed_segments[column_id] = std::make_shared<DictionarySegment<ColumnDataType>>(segment_to_compress);
     });
-    threads.back().detach();
   }
 
-  for (auto& thread : threads) {
-    thread.join();
-  }
+  auto compressed_chunk = std::make_shared<Chunk>();
 
   for (auto column_id = ColumnID{0}; column_id < chunk_size; ++column_id) {
-    // add segment to chunk
     compressed_chunk->add_segment(compressed_segments[column_id]);
   }
 
-  // chunk exchange on pointer
-  _chunks[chunk_id].reset(compressed_chunk.get());
+  _chunks[chunk_id] = compressed_chunk;
 }
 
 }  // namespace opossum

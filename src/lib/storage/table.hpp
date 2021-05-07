@@ -49,7 +49,7 @@ class Table : private Noncopyable {
 
   // Adds a chunk to the table. If the first chunk is empty, it is replaced.
   // This method intentionally takes the unique ownership of the chunk.
-  void emplace_chunk(std::unique_ptr<Chunk> chunk);
+  void emplace_chunk(std::shared_ptr<Chunk> chunk);
 
   // Returns a list of all column names.
   const std::vector<std::string> column_names() const;
@@ -83,7 +83,7 @@ class Table : private Noncopyable {
  protected:
   const uint32_t _target_chunk_size;
 
-  std::vector<std::unique_ptr<Chunk>> _chunks;
+  std::vector<std::shared_ptr<Chunk>> _chunks;
   std::vector<Column> _columns;
 
   // TODO(hig): If we need this more often, consider to move this to BaseSegment or ValueSegment

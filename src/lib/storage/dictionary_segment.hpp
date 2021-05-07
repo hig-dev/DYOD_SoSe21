@@ -12,6 +12,7 @@
 #include "fixed_size_attribute_vector.hpp"
 #include "type_cast.hpp"
 #include "types.hpp"
+#include "value_segment.hpp"
 
 namespace opossum {
 
@@ -27,15 +28,17 @@ class DictionarySegment : public BaseSegment {
    * Creates a Dictionary segment from a given value segment.
    */
   explicit DictionarySegment(const std::shared_ptr<BaseSegment>& base_segment) {
+    auto value_segment = std::dynamic_pointer_cast<ValueSegment<T>>(base_segment);
+    DebugAssert(value_segment, "The parameter \"base_segment\" should be of type ValueSegment<T>.");
+
     _dictionary = std::make_shared<std::vector<T>>();
     auto temp_attribute_vector = std::vector<ValueID>{};
 
-    const auto segment_size = base_segment->size();
+    const auto segment_size = value_segment->size();
     temp_attribute_vector.reserve(segment_size);
 
-    for (auto chunk_offset = ChunkOffset{0}; chunk_offset < segment_size; ++chunk_offset) {
-      const auto value = (*base_segment)[chunk_offset];
-      const auto value_id = _insert_in_dictionary(value);
+    for (const auto& chunk_value : value_segment->values()) {
+      const auto value_id = _insert_in_dictionary(chunk_value);
       temp_attribute_vector.emplace_back(value_id);
     }
 

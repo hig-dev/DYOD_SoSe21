@@ -36,7 +36,7 @@ ChunkOffset Chunk::size() const {
 
 size_t Chunk::estimate_memory_usage() const {
   return std::accumulate(_columns.begin(), _columns.end(), 0,
-                         [](size_t sum, const auto& _segment) { return sum + _segment->estimate_memory_usage(); });
+                         [](size_t sum, const auto& segment) { return sum + segment->estimate_memory_usage(); });
 }
 
 }  // namespace opossum

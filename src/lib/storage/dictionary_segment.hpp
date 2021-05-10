@@ -31,15 +31,19 @@ class DictionarySegment : public BaseSegment {
     auto value_segment = std::dynamic_pointer_cast<ValueSegment<T>>(base_segment);
     DebugAssert(value_segment, "The parameter \"base_segment\" should be of type ValueSegment<T>.");
 
-    _dictionary = std::make_shared<std::vector<T>>();
-    auto temp_attribute_vector = std::vector<ValueID>{};
-
     const auto segment_size = value_segment->size();
-    temp_attribute_vector.reserve(segment_size);
 
+    _dictionary = std::make_shared<std::vector<T>>();
     for (const auto& chunk_value : value_segment->values()) {
-      const auto value_id = _insert_in_dictionary(chunk_value);
-      temp_attribute_vector.emplace_back(value_id);
+      _insert_in_dictionary(chunk_value);
+    }
+
+    auto temp_attribute_vector = std::vector<ValueID>{};
+    temp_attribute_vector.reserve(segment_size);
+    for (const auto& chunk_value : value_segment->values()) {
+      const auto insert_iter = std::lower_bound(_dictionary->begin(), _dictionary->end(), chunk_value);
+      const auto insert_index = std::distance(_dictionary->begin(), insert_iter);
+      temp_attribute_vector.emplace_back(insert_index);
     }
 
     const auto local_unique_values_count = unique_values_count();
@@ -63,7 +67,6 @@ class DictionarySegment : public BaseSegment {
 
   // return the value at a certain position. If you want to write efficient operators, back off!
 
-  // TODO: write test
   AllTypeVariant operator[](const ChunkOffset chunk_offset) const override { return get(chunk_offset); }
 
   // return the value at a certain position.
@@ -130,21 +133,15 @@ class DictionarySegment : public BaseSegment {
   std::shared_ptr<std::vector<T>> _dictionary;
   std::shared_ptr<BaseAttributeVector> _attribute_vector;
 
-  /**
-   * @param value value to insert
-   * @return ValueId of added value or existing ValueId if already in dictionary
-   */
-  ValueID _insert_in_dictionary(const AllTypeVariant& value) {
+  // inserts value to dictionary sorted and without duplicates
+  void _insert_in_dictionary(const AllTypeVariant& value) {
     const auto typed_value = type_cast<T>(value);
     auto insert_iter = std::lower_bound(_dictionary->begin(), _dictionary->end(), typed_value);
 
     if (insert_iter == _dictionary->end() || *insert_iter != typed_value) {
       // Dictionary does not contain the value to add -> Add value to dictionary.
-      insert_iter = _dictionary->emplace(insert_iter, typed_value);
+      _dictionary->emplace(insert_iter, typed_value);
     }
-
-    const auto value_id = std::distance(_dictionary->begin(), insert_iter);
-    return ValueID{static_cast<ValueID::base_type>(value_id)};
   }
 };
 

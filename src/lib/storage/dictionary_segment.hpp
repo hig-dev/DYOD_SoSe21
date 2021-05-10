@@ -51,13 +51,10 @@ class DictionarySegment : public BaseSegment {
     if (local_unique_values_count <= std::numeric_limits<uint8_t>::max()) {
       _attribute_vector = std::make_shared<FixedSizeAttributeVector<uint8_t>>(temp_attribute_vector);
     } else if (local_unique_values_count <= std::numeric_limits<uint16_t>::max()) {
-      // TODO: write test
       _attribute_vector = std::make_shared<FixedSizeAttributeVector<uint16_t>>(temp_attribute_vector);
     } else if (local_unique_values_count <= std::numeric_limits<uint32_t>::max()) {
-      // TODO: write test
       _attribute_vector = std::make_shared<FixedSizeAttributeVector<uint32_t>>(temp_attribute_vector);
     } else {
-      // TODO: write test
       throw std::runtime_error("The segment contains more than UINT32_MAX distinct values.");
     }
   }
@@ -76,7 +73,6 @@ class DictionarySegment : public BaseSegment {
   }
 
   // dictionary segments are immutable
-  // TODO: write test
   void append(const AllTypeVariant& val) override {
     throw std::runtime_error("Appending to an immutable dictionary segment is not allowed.");
   }
@@ -89,7 +85,6 @@ class DictionarySegment : public BaseSegment {
 
   // return the value represented by a given ValueID
 
-  // TODO: write test
   const T& value_by_value_id(ValueID value_id) const { return _dictionary->at(value_id); }
 
   // returns the first value ID that refers to a value >= the search value
@@ -123,7 +118,6 @@ class DictionarySegment : public BaseSegment {
   ChunkOffset size() const override { return _attribute_vector->size(); }
 
   // returns the calculated memory usage
-  // TODO: write test
   size_t estimate_memory_usage() const final {
     const size_t dictionary_size = _dictionary->capacity() * sizeof(T);
     return dictionary_size + _attribute_vector->estimate_memory_usage();

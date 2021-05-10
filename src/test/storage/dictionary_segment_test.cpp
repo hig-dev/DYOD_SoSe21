@@ -158,9 +158,9 @@ TEST_F(StorageDictionarySegmentTest, ValueByValueId) {
 }
 
 TEST_F(StorageDictionarySegmentTest, FixedSizeAttributeVectorUsage) {
-  int count = std::numeric_limits<uint8_t>::min();
-  vc_int->append(count);
-  count++;
+  uint32_t distinct_int = 0;
+  vc_int->append(static_cast<int>(distinct_int));
+  distinct_int++;
 
   std::shared_ptr<BaseSegment> col;
   resolve_data_type("int", [&](auto type) {
@@ -170,9 +170,9 @@ TEST_F(StorageDictionarySegmentTest, FixedSizeAttributeVectorUsage) {
   auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<int>>(col);
   EXPECT_EQ(dict_col->attribute_vector()->width(), 1);
 
-  while (count <= std::numeric_limits<uint8_t>::max() + 1) {
-    vc_int->append(count);
-    count++;
+  while (distinct_int <= std::numeric_limits<uint8_t>::max() + 1ul) {
+    vc_int->append(static_cast<int>(distinct_int));
+    distinct_int++;
   }
 
   std::shared_ptr<BaseSegment> col2;
@@ -183,9 +183,9 @@ TEST_F(StorageDictionarySegmentTest, FixedSizeAttributeVectorUsage) {
   auto dict_col2 = std::dynamic_pointer_cast<opossum::DictionarySegment<int>>(col2);
   EXPECT_EQ(dict_col2->attribute_vector()->width(), 2);
 
-  while (count <= std::numeric_limits<uint16_t>::max() + 1) {
-    vc_int->append(count);
-    count++;
+  while (distinct_int <= std::numeric_limits<uint16_t>::max() + 1ul) {
+    vc_int->append(static_cast<int>(distinct_int));
+    distinct_int++;
   }
 
   std::shared_ptr<BaseSegment> col3;

@@ -34,7 +34,6 @@ ChunkOffset Chunk::size() const {
   return _columns.empty() ? 0 : _columns[0]->size();
 }
 
-// TODO: write test
 size_t Chunk::estimate_memory_usage() const {
   return std::accumulate(_columns.begin(), _columns.end(), 0,
                          [](size_t sum, const auto& segment) { return sum + segment->estimate_memory_usage(); });

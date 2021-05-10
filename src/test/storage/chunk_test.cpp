@@ -61,4 +61,9 @@ TEST_F(StorageChunkTest, RetrieveSegment) {
   }
 }
 
+TEST_F(StorageChunkTest, MemoryUsage) {
+  c.add_segment(int_value_segment);
+  EXPECT_EQ(c.estimate_memory_usage(), size_t{16});
+}
+
 }  // namespace opossum

@@ -136,11 +136,11 @@ class DictionarySegment : public BaseSegment {
    */
   ValueID _insert_in_dictionary(const AllTypeVariant& value) {
     const auto typed_value = type_cast<T>(value);
-    const auto insert_iter = std::lower_bound(_dictionary->begin(), _dictionary->end(), typed_value);
+    auto insert_iter = std::lower_bound(_dictionary->begin(), _dictionary->end(), typed_value);
 
     if (insert_iter == _dictionary->end() || *insert_iter != typed_value) {
       // Dictionary does not contain the value to add -> Add value to dictionary.
-      _dictionary->emplace(insert_iter, typed_value);
+      insert_iter = _dictionary->emplace(insert_iter, typed_value);
     }
 
     const auto value_id = std::distance(_dictionary->begin(), insert_iter);

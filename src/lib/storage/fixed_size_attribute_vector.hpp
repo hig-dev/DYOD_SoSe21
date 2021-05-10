@@ -18,8 +18,10 @@ class FixedSizeAttributeVector : public BaseAttributeVector {
     }
   }
 
+  // TODO: write test
   ValueID get(const size_t i) const override { return ValueID{_attribute_vector.at(i)}; }
 
+  // TODO: write test
   void set(const size_t i, const ValueID value_id) override {
     DebugAssert(i < size(), "The index is out of bounds.");
     _attribute_vector[i] = value_id;

@@ -65,6 +65,19 @@ TEST_F(StorageDictionarySegmentTest, LowerUpperBound) {
   EXPECT_EQ(dict_col->upper_bound(15), opossum::INVALID_VALUE_ID);
 }
 
+ TEST_F(StorageDictionarySegmentTest, MemoryUsage) {
+   for (int val = 0; val < 100; ++val) {
+     vc_int->append(val);
+   }
+   std::shared_ptr<BaseSegment> col;
+   resolve_data_type("int", [&](auto type) {
+     using Type = typename decltype(type)::type;
+     col = std::make_shared<DictionarySegment<Type>>(vc_int);
+   });
+   auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<int>>(col);
+   EXPECT_EQ(dict_col->estimate_memory_usage(), 612);
+ }
+
 // TODO(student): You should add some more tests here (full coverage would be appreciated) and possibly in other files.
 
 }  // namespace opossum

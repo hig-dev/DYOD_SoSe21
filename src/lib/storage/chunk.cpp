@@ -27,7 +27,7 @@ void Chunk::append(const std::vector<AllTypeVariant>& values) {
 
 std::shared_ptr<BaseSegment> Chunk::get_segment(ColumnID column_id) const { return _columns.at(column_id); }
 
-ColumnCount Chunk::column_count() const { return ColumnCount{static_cast<uint16_t>(_columns.size())}; }
+ColumnCount Chunk::column_count() const { return ColumnCount{static_cast<ColumnCount::base_type>(_columns.size())}; }
 
 ChunkOffset Chunk::size() const {
   // Read row count from first column (each should have the same height).

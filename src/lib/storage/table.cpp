@@ -40,7 +40,7 @@ void Table::append(const std::vector<AllTypeVariant>& values) {
 // TODO(max): write test
 void Table::emplace_chunk(std::shared_ptr<Chunk> chunk) {
   if (row_count() == 0) {
-    // only existing chunk is empty -> sreplace chunk
+    // only existing chunk is empty -> replace chunk
     _chunks[0] = chunk;
   } else {
     Assert(_chunks.back()->size() != _target_chunk_size,
@@ -49,21 +49,21 @@ void Table::emplace_chunk(std::shared_ptr<Chunk> chunk) {
   }
 }
 
-ColumnCount Table::column_count() const { return ColumnCount{static_cast<uint16_t>(_columns.size())}; }
+ColumnCount Table::column_count() const { return ColumnCount{static_cast<ColumnCount::base_type>(_columns.size())}; }
 
 uint64_t Table::row_count() const {
   return std::accumulate(_chunks.begin(), _chunks.end(), 0,
                          [](uint64_t sum, const auto& current_chunk) { return sum + current_chunk->size(); });
 }
 
-ChunkCount Table::chunk_count() const { return ChunkCount{static_cast<uint32_t>(_chunks.size())}; }
+ChunkCount Table::chunk_count() const { return ChunkCount{static_cast<ChunkCount::base_type>(_chunks.size())}; }
 
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
   const auto find_result_iter =
       std::find_if(_columns.begin(), _columns.end(), [&column_name](const Column& c) { return c.name == column_name; });
   Assert(find_result_iter != _columns.end(), "Column name does not exist.");
-  const auto find_index = static_cast<uint16_t>(std::distance(_columns.begin(), find_result_iter));
-  return ColumnID{find_index};
+  const auto find_index = std::distance(_columns.begin(), find_result_iter);
+  return ColumnID{static_cast<ColumnID::base_type>(find_index)};
 }
 
 ChunkOffset Table::target_chunk_size() const { return _target_chunk_size; }

@@ -85,12 +85,14 @@ TEST_F(StorageTableTest, GetChunkSize) { EXPECT_EQ(t.target_chunk_size(), 2u); }
 
 TEST_F(StorageTableTest, CompressChunk) {
   t.append({0, "Alexander"});
-  t.append({1, "Bill"});
-  t.append({2, "Alexander"});
+  t.append({1, "Alexander"});
   t.compress_chunk(ChunkID{0});
   auto& compressed_chunk = (t.get_chunk(ChunkID{0}));
   auto compressed_segment = compressed_chunk.get_segment(ColumnID{1});
-  EXPECT_NE(std::dynamic_pointer_cast<DictionarySegment<std::string>>(compressed_segment), nullptr);
+  auto dictionary_segment = std::dynamic_pointer_cast<DictionarySegment<std::string>>(compressed_segment);
+  EXPECT_NE(dictionary_segment, nullptr);
+  EXPECT_EQ(dictionary_segment->get(0), "Alexander");
+  EXPECT_EQ(dictionary_segment->get(1), "Alexander");
 }
 
 }  // namespace opossum

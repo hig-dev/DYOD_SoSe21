@@ -157,7 +157,7 @@ TEST_F(StorageDictionarySegmentTest, ValueByValueId) {
   EXPECT_THROW(dict_col->value_by_value_id(ValueID{4}), std::exception);
 }
 
-TEST_F(StorageDictionarySegmentTest, FixedSizeAttributeVectorUsage) {
+TEST_F(StorageDictionarySegmentTest, FixedSizeAttributeVector) {
   uint32_t distinct_int = 0;
   vc_int->append(static_cast<int>(distinct_int));
   distinct_int++;
@@ -195,5 +195,24 @@ TEST_F(StorageDictionarySegmentTest, FixedSizeAttributeVectorUsage) {
   });
   auto dict_col3 = std::dynamic_pointer_cast<opossum::DictionarySegment<int>>(col3);
   EXPECT_EQ(dict_col3->attribute_vector()->width(), 4);
+}
+
+TEST_F(StorageDictionarySegmentTest, ConstructWithWrongType) {
+  vc_str->append("Bill");
+  vc_str->append("Steve");
+
+  std::shared_ptr<BaseSegment> col;
+  resolve_data_type("string", [&](auto type) {
+    using Type = typename decltype(type)::type;
+    col = std::make_shared<DictionarySegment<Type>>(vc_str);
+  });
+  auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<std::string>>(col);
+
+  if constexpr (HYRISE_DEBUG) {
+    resolve_data_type("string", [&](auto type) {
+      using Type = typename decltype(type)::type;
+      EXPECT_THROW(std::make_shared<DictionarySegment<Type>>(dict_col), std::exception);
+    });
+  }
 }
 }  // namespace opossum

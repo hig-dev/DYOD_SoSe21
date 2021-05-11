@@ -32,11 +32,13 @@ TEST_F(StorageTableTest, ChunkCount) {
 }
 
 TEST_F(StorageTableTest, GetChunk) {
-  t.get_chunk(ChunkID{0});
+  auto& first_chunk = t.get_chunk(ChunkID{0});
   t.append({4, "Hello,"});
   t.append({6, "world"});
   t.append({3, "!"});
-  t.get_chunk(ChunkID{1});
+  EXPECT_EQ(first_chunk.size(), 2);
+  const auto& second_chunk = std::as_const(t).get_chunk(ChunkID{1});
+  EXPECT_EQ(second_chunk.size(), 1);
 
   if constexpr (HYRISE_DEBUG) {
     EXPECT_THROW(t.get_chunk(ChunkID{42}), std::exception);

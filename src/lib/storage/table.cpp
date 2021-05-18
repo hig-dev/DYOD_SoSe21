@@ -144,7 +144,6 @@ void Table::compress_chunk(ChunkID chunk_id) {
   }
 
   // Swap the uncompressed chunk with the newly created compressed chunk
-  const std::lock_guard<std::mutex> lock(_swap_chunk_mutex);
   _chunks[chunk_id] = compressed_chunk;
 }
 

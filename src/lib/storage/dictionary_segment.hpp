@@ -28,7 +28,7 @@ class DictionarySegment : public BaseSegment {
    * Creates a Dictionary segment from a given value segment.
    */
   explicit DictionarySegment(const std::shared_ptr<BaseSegment>& base_segment) {
-    auto value_segment = std::dynamic_pointer_cast<ValueSegment<T>>(base_segment);
+    auto value_segment = std::static_pointer_cast<ValueSegment<T>>(base_segment);
     DebugAssert(value_segment, "The parameter \"base_segment\" should be of type ValueSegment<T>.");
 
     const auto segment_size = value_segment->size();

@@ -29,7 +29,7 @@ class FixedSizeAttributeVector : public BaseAttributeVector {
 
   AttributeVectorWidth width() const override { return sizeof(uintX_t); }
 
-  size_t estimate_memory_usage() const override { return _attribute_vector.capacity() * sizeof(uintX_t); }
+  size_t estimate_memory_usage() const override { return _attribute_vector.capacity() * width(); }
 
  private:
   std::vector<uintX_t> _attribute_vector;

@@ -17,32 +17,38 @@
 
 namespace opossum {
 
-Column::Column(std::string name, std::string type) : name(std::move(name)), type(std::move(type)) {}
+ColumnDefinition::ColumnDefinition(std::string name, std::string type) : name(std::move(name)), type(std::move(type)) {}
 
 Table::Table(const ChunkOffset target_chunk_size) : _target_chunk_size{target_chunk_size} {
   // create initial chunk
-  _append_new_chunk();
+  create_new_chunk();
 }
 
 void Table::add_column_definition(const std::string& name, const std::string& type) {
-  // TODO(anyone): Implementation goes here
+  Assert(row_count() == 0, "The table already contains rows, column scheme can not be altered anymore.");
+  _column_definitions.emplace_back(name, type);
 }
 
 void Table::add_column(const std::string& name, const std::string& type) {
-  Assert(row_count() == 0, "The table already contains rows, column scheme can not be altered anymore.");
-  _columns.emplace_back(name, type);
+  add_column_definition(name, type);
   _append_column_to_chunks(type);
 }
 
 void Table::append(const std::vector<AllTypeVariant>& values) {
   if (_chunks.back()->size() == _target_chunk_size) {
-    _append_new_chunk();
+    create_new_chunk();
   }
   _chunks.back()->append(values);
 }
 
 void Table::create_new_chunk() {
-  // TODO(anyone): Implementation goes here
+  auto new_chunk = std::make_shared<Chunk>();
+
+  for (const auto& column : _column_definitions) {
+    // append existing columns as segments to new chunk
+    new_chunk->add_segment(_create_value_segment_for_type(column.type));
+  }
+  _chunks.emplace_back(new_chunk);
 }
 
 // TODO(max): write test
@@ -57,7 +63,9 @@ void Table::emplace_chunk(std::shared_ptr<Chunk> chunk) {
   }
 }
 
-ColumnCount Table::column_count() const { return ColumnCount{static_cast<ColumnCount::base_type>(_columns.size())}; }
+ColumnCount Table::column_count() const {
+  return ColumnCount{static_cast<ColumnCount::base_type>(_column_definitions.size())};
+}
 
 uint64_t Table::row_count() const {
   return std::accumulate(_chunks.begin(), _chunks.end(), 0,
@@ -68,9 +76,10 @@ ChunkCount Table::chunk_count() const { return ChunkCount{static_cast<ChunkCount
 
 ColumnID Table::column_id_by_name(const std::string& column_name) const {
   const auto find_result_iter =
-      std::find_if(_columns.begin(), _columns.end(), [&column_name](const Column& c) { return c.name == column_name; });
-  Assert(find_result_iter != _columns.end(), "Column name does not exist.");
-  const auto find_index = std::distance(_columns.begin(), find_result_iter);
+      std::find_if(_column_definitions.begin(), _column_definitions.end(),
+                   [&column_name](const ColumnDefinition& c) { return c.name == column_name; });
+  Assert(find_result_iter != _column_definitions.end(), "Column name does not exist.");
+  const auto find_index = std::distance(_column_definitions.begin(), find_result_iter);
   return ColumnID{static_cast<ColumnID::base_type>(find_index)};
 }
 
@@ -78,30 +87,20 @@ ChunkOffset Table::target_chunk_size() const { return _target_chunk_size; }
 
 const std::vector<std::string> Table::column_names() const {
   auto column_names = std::vector<std::string>();
-  column_names.reserve(_columns.size());
-  for (const auto& column : _columns) {
+  column_names.reserve(_column_definitions.size());
+  for (const auto& column : _column_definitions) {
     column_names.emplace_back(column.name);
   }
   return column_names;
 }
 
-const std::string& Table::column_name(const ColumnID column_id) const { return _columns.at(column_id).name; }
+const std::string& Table::column_name(const ColumnID column_id) const { return _column_definitions.at(column_id).name; }
 
-const std::string& Table::column_type(const ColumnID column_id) const { return _columns.at(column_id).type; }
+const std::string& Table::column_type(const ColumnID column_id) const { return _column_definitions.at(column_id).type; }
 
 Chunk& Table::get_chunk(ChunkID chunk_id) { return *_chunks.at(chunk_id); }
 
 const Chunk& Table::get_chunk(ChunkID chunk_id) const { return *_chunks.at(chunk_id); }
-
-void Table::_append_new_chunk() {
-  auto new_chunk = std::make_shared<Chunk>();
-
-  for (const auto& column : _columns) {
-    // append existing columns as segments to new chunk
-    new_chunk->add_segment(_create_value_segment_for_type(column.type));
-  }
-  _chunks.emplace_back(new_chunk);
-}
 
 std::shared_ptr<BaseSegment> Table::_create_value_segment_for_type(const std::string& type) {
   auto new_segment = std::shared_ptr<BaseSegment>{};
@@ -130,7 +129,7 @@ void Table::compress_chunk(ChunkID chunk_id) {
   auto compressed_segments = std::vector<std::shared_ptr<BaseSegment>>{chunk_size};
   for (auto column_id = ColumnID{0}; column_id < chunk_size; ++column_id) {
     const auto segment_to_compress = chunk_to_compress.get_segment(column_id);
-    const auto segment_type = _columns[column_id].type;
+    const auto segment_type = _column_definitions[column_id].type;
 
     threads.emplace_back([&compressed_segments, segment_type, column_id, segment_to_compress] {
       resolve_data_type(segment_type, [&compressed_segments, column_id, segment_to_compress](const auto data_type_t) {

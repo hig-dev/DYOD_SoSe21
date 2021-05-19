@@ -58,6 +58,9 @@ class AbstractOperator : private Noncopyable {
 
   // Is nullptr until the operator is executed
   std::shared_ptr<const Table> _output;
+
+  bool _is_executing = false;
+  bool _has_been_executed = false;
 };
 
 }  // namespace opossum

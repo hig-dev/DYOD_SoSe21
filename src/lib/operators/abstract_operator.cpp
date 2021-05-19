@@ -15,7 +15,7 @@ AbstractOperator::AbstractOperator(const std::shared_ptr<const AbstractOperator>
     : _left_input(left), _right_input(right) {}
 
 void AbstractOperator::execute() {
-  Assert(_is_executing || _has_been_executed, "Operators shall not be executed twice.");
+  Assert(!_is_executing && !_has_been_executed, "Operators shall not be executed twice.");
   _is_executing = true;
   _output = _on_execute();
   _is_executing = false;

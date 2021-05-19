@@ -1,6 +1,7 @@
 #include <memory>
 #include <string>
 
+#include "../base_test.hpp"
 #include "gtest/gtest.h"
 
 #include "../../lib/all_type_variant.hpp"
@@ -12,10 +13,10 @@
 
 namespace opossum {
 
-class StorageDictionarySegmentTest : public ::testing::Test {
+class StorageDictionarySegmentTest : public BaseTest {
  protected:
-  std::shared_ptr<opossum::ValueSegment<int>> vc_int = std::make_shared<opossum::ValueSegment<int>>();
-  std::shared_ptr<opossum::ValueSegment<std::string>> vc_str = std::make_shared<opossum::ValueSegment<std::string>>();
+  std::shared_ptr<ValueSegment<int>> vc_int = std::make_shared<ValueSegment<int>>();
+  std::shared_ptr<ValueSegment<std::string>> vc_str = std::make_shared<ValueSegment<std::string>>();
 };
 
 TEST_F(StorageDictionarySegmentTest, CompressSegmentString) {
@@ -31,7 +32,7 @@ TEST_F(StorageDictionarySegmentTest, CompressSegmentString) {
     using Type = typename decltype(type)::type;
     col = std::make_shared<DictionarySegment<Type>>(vc_str);
   });
-  auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<std::string>>(col);
+  auto dict_col = std::dynamic_pointer_cast<DictionarySegment<std::string>>(col);
 
   // Test attribute_vector size
   EXPECT_EQ(dict_col->size(), 6u);
@@ -55,16 +56,16 @@ TEST_F(StorageDictionarySegmentTest, LowerUpperBound) {
     using Type = typename decltype(type)::type;
     col = std::make_shared<DictionarySegment<Type>>(vc_int);
   });
-  auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<int>>(col);
+  auto dict_col = std::dynamic_pointer_cast<DictionarySegment<int>>(col);
 
-  EXPECT_EQ(dict_col->lower_bound(4), (opossum::ValueID)2);
-  EXPECT_EQ(dict_col->upper_bound(4), (opossum::ValueID)3);
+  EXPECT_EQ(dict_col->lower_bound(4), (ValueID)2);
+  EXPECT_EQ(dict_col->upper_bound(4), (ValueID)3);
 
-  EXPECT_EQ(dict_col->lower_bound(5), (opossum::ValueID)3);
-  EXPECT_EQ(dict_col->upper_bound(5), (opossum::ValueID)3);
+  EXPECT_EQ(dict_col->lower_bound(5), (ValueID)3);
+  EXPECT_EQ(dict_col->upper_bound(5), (ValueID)3);
 
-  EXPECT_EQ(dict_col->lower_bound(15), opossum::INVALID_VALUE_ID);
-  EXPECT_EQ(dict_col->upper_bound(15), opossum::INVALID_VALUE_ID);
+  EXPECT_EQ(dict_col->lower_bound(15), INVALID_VALUE_ID);
+  EXPECT_EQ(dict_col->upper_bound(15), INVALID_VALUE_ID);
 }
 
 TEST_F(StorageDictionarySegmentTest, MemoryUsage) {
@@ -76,7 +77,7 @@ TEST_F(StorageDictionarySegmentTest, MemoryUsage) {
     using Type = typename decltype(type)::type;
     col = std::make_shared<DictionarySegment<Type>>(vc_int);
   });
-  auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<int>>(col);
+  auto dict_col = std::dynamic_pointer_cast<DictionarySegment<int>>(col);
 
   const auto min_memory_use = 600;
 
@@ -99,9 +100,14 @@ TEST_F(StorageDictionarySegmentTest, Append) {
     using Type = typename decltype(type)::type;
     col = std::make_shared<DictionarySegment<Type>>(vc_str);
   });
-  auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<std::string>>(col);
+  auto dict_col = std::dynamic_pointer_cast<DictionarySegment<std::string>>(col);
   EXPECT_THROW(dict_col->append("Peter"), std::exception);
 }
+// class StorageDictionarySegmentTest : public BaseTest {
+//  protected:
+//   std::shared_ptr<ValueSegment<int>> vc_int = std::make_shared<ValueSegment<int>>();
+//   std::shared_ptr<ValueSegment<std::string>> vc_str = std::make_shared<ValueSegment<std::string>>();
+// };
 
 TEST_F(StorageDictionarySegmentTest, GetAndSubscribe) {
   vc_str->append("Bill");
@@ -116,7 +122,8 @@ TEST_F(StorageDictionarySegmentTest, GetAndSubscribe) {
     using Type = typename decltype(type)::type;
     col = std::make_shared<DictionarySegment<Type>>(vc_str);
   });
-  auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<std::string>>(col);
+
+  auto dict_col = std::dynamic_pointer_cast<DictionarySegment<std::string>>(col);
 
   EXPECT_EQ(dict_col->get(0), "Bill");
   EXPECT_EQ(dict_col->get(1), "Steve");
@@ -149,7 +156,7 @@ TEST_F(StorageDictionarySegmentTest, ValueByValueId) {
     using Type = typename decltype(type)::type;
     col = std::make_shared<DictionarySegment<Type>>(vc_str);
   });
-  auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<std::string>>(col);
+  auto dict_col = std::dynamic_pointer_cast<DictionarySegment<std::string>>(col);
   EXPECT_EQ(dict_col->value_by_value_id(ValueID{0}), "Alexander");
   EXPECT_EQ(dict_col->value_by_value_id(ValueID{1}), "Bill");
   EXPECT_EQ(dict_col->value_by_value_id(ValueID{2}), "Hasso");
@@ -167,7 +174,7 @@ TEST_F(StorageDictionarySegmentTest, FixedSizeAttributeVector) {
     using Type = typename decltype(type)::type;
     col = std::make_shared<DictionarySegment<Type>>(vc_int);
   });
-  auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<int>>(col);
+  auto dict_col = std::dynamic_pointer_cast<DictionarySegment<int>>(col);
   EXPECT_EQ(dict_col->attribute_vector()->width(), 1);
 
   while (distinct_int <= std::numeric_limits<uint8_t>::max() + 1ul) {
@@ -180,7 +187,7 @@ TEST_F(StorageDictionarySegmentTest, FixedSizeAttributeVector) {
     using Type = typename decltype(type)::type;
     col2 = std::make_shared<DictionarySegment<Type>>(vc_int);
   });
-  auto dict_col2 = std::dynamic_pointer_cast<opossum::DictionarySegment<int>>(col2);
+  auto dict_col2 = std::dynamic_pointer_cast<DictionarySegment<int>>(col2);
   EXPECT_EQ(dict_col2->attribute_vector()->width(), 2);
 
   while (distinct_int <= std::numeric_limits<uint16_t>::max() + 1ul) {
@@ -193,7 +200,7 @@ TEST_F(StorageDictionarySegmentTest, FixedSizeAttributeVector) {
     using Type = typename decltype(type)::type;
     col3 = std::make_shared<DictionarySegment<Type>>(vc_int);
   });
-  auto dict_col3 = std::dynamic_pointer_cast<opossum::DictionarySegment<int>>(col3);
+  auto dict_col3 = std::dynamic_pointer_cast<DictionarySegment<int>>(col3);
   EXPECT_EQ(dict_col3->attribute_vector()->width(), 4);
 }
 
@@ -206,7 +213,7 @@ TEST_F(StorageDictionarySegmentTest, ConstructWithWrongType) {
     using Type = typename decltype(type)::type;
     col = std::make_shared<DictionarySegment<Type>>(vc_str);
   });
-  auto dict_col = std::dynamic_pointer_cast<opossum::DictionarySegment<std::string>>(col);
+  auto dict_col = std::dynamic_pointer_cast<DictionarySegment<std::string>>(col);
 
   if constexpr (HYRISE_DEBUG) {
     resolve_data_type("string", [&](auto type) {

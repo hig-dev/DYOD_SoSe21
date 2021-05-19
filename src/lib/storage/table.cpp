@@ -24,6 +24,10 @@ Table::Table(const ChunkOffset target_chunk_size) : _target_chunk_size{target_ch
   _append_new_chunk();
 }
 
+void Table::add_column_definition(const std::string& name, const std::string& type) {
+  // TODO(anyone): Implementation goes here
+}
+
 void Table::add_column(const std::string& name, const std::string& type) {
   Assert(row_count() == 0, "The table already contains rows, column scheme can not be altered anymore.");
   _columns.emplace_back(name, type);
@@ -35,6 +39,10 @@ void Table::append(const std::vector<AllTypeVariant>& values) {
     _append_new_chunk();
   }
   _chunks.back()->append(values);
+}
+
+void Table::create_new_chunk() {
+  // TODO(anyone): Implementation goes here
 }
 
 // TODO(max): write test

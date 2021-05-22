@@ -127,7 +127,7 @@ void Table::compress_chunk(ChunkID chunk_id) {
 
   // Compress each segment in parallel and store the compressed segments in a vector
   auto compressed_segments = std::vector<std::shared_ptr<BaseSegment>>{chunk_size};
-  for (auto column_id = ColumnID{0}; column_id < chunk_size; ++column_id) {
+  for (auto column_id = ColumnID{0}; column_id < chunk_to_compress.column_count(); ++column_id) {
     const auto segment_to_compress = chunk_to_compress.get_segment(column_id);
     const auto segment_type = _column_definitions[column_id].type;
 

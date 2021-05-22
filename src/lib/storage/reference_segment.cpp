@@ -1,19 +1,5 @@
 #include "reference_segment.hpp"
 
-#include <map>
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <utility>
-#include <vector>
-
-#include "base_segment.hpp"
-#include "dictionary_segment.hpp"
-#include "table.hpp"
-#include "types.hpp"
-#include "utils/assert.hpp"
-#include "value_segment.hpp"
-
 namespace opossum {
 
 ReferenceSegment::ReferenceSegment(

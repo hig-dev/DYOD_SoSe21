@@ -9,9 +9,9 @@ ReferenceSegment::ReferenceSegment(
 ) : _referenced_table{referenced_table}, _referenced_column_id{referenced_column_id}, _pos_list{pos} {}
 
 AllTypeVariant ReferenceSegment::operator[](const ChunkOffset chunk_offset) const {
-  auto row_id = _pos_list->at(chunk_offset);
-  auto &chunk = _referenced_table->get_chunk(row_id.chunk_id);
-  auto &segment = *chunk.get_segment(_referenced_column_id);
+  const auto row_id = _pos_list->at(chunk_offset);
+  const auto &chunk = _referenced_table->get_chunk(row_id.chunk_id);
+  const auto &segment = *chunk.get_segment(_referenced_column_id);
   return segment[row_id.chunk_offset];
 }
 

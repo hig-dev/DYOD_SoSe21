@@ -29,6 +29,10 @@ void Table::add_column_definition(const std::string& name, const std::string& ty
   _column_definitions.emplace_back(name, type);
 }
 
+void Table::copy_column_definition(const std::shared_ptr<const Table>& other_table, const ColumnID column_id) {
+  _column_definitions.push_back(other_table->_column_definitions.at(column_id));
+}
+
 void Table::add_column(const std::string& name, const std::string& type) {
   add_column_definition(name, type);
   _append_column_to_chunks(type);
@@ -61,6 +65,11 @@ void Table::emplace_chunk(std::shared_ptr<Chunk> chunk) {
            "Cannot emplace chunk because current last chunk is not full.");
     _chunks.emplace_back(chunk);
   }
+}
+
+bool Table::is_empty() const {
+  if (chunk_count() == 0) return true;
+  return column_count() == 0;
 }
 
 ColumnCount Table::column_count() const {

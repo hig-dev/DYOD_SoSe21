@@ -32,6 +32,8 @@ class Table : private Noncopyable {
   // default is the maximum chunk size minus 1. A table holds always at least one chunk
   explicit Table(const ChunkOffset target_chunk_size = std::numeric_limits<ChunkOffset>::max() - 1);
 
+  bool is_empty() const;
+
   // returns the number of columns (cannot exceed ColumnID (uint16_t))
   ColumnCount column_count() const;
 
@@ -73,6 +75,8 @@ class Table : private Noncopyable {
   // and then adds chunk by chunk
   void add_column_definition(const std::string& name, const std::string& type);
 
+  void copy_column_definition(const std::shared_ptr<const Table>& other_table, const ColumnID column_id);
+
   // adds a column to the end, i.e., right, of the table
   // this can only be done if the table does not yet have any entries, because we would otherwise have to deal
   // with default values
@@ -96,7 +100,6 @@ class Table : private Noncopyable {
 
   // TODO(hig): If we need this more often, consider to move this to BaseSegment or ValueSegment
   static std::shared_ptr<BaseSegment> _create_value_segment_for_type(const std::string& type);
-  void _append_new_chunk();
   void _append_column_to_chunks(const std::string& type);
 };
 }  // namespace opossum

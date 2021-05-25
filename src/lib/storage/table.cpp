@@ -129,14 +129,14 @@ void Table::_append_column_to_chunks(const std::string& type) {
 
 void Table::compress_chunk(ChunkID chunk_id) {
   const auto& chunk_to_compress = get_chunk(chunk_id);
-  const auto chunk_size = chunk_to_compress.size();
+  const auto column_count = chunk_to_compress.column_count();
 
   auto threads = std::vector<std::thread>{};
-  threads.reserve(chunk_size);
+  threads.reserve(column_count);
 
   // Compress each segment in parallel and store the compressed segments in a vector
-  auto compressed_segments = std::vector<std::shared_ptr<BaseSegment>>{chunk_size};
-  for (auto column_id = ColumnID{0}; column_id < chunk_to_compress.column_count(); ++column_id) {
+  auto compressed_segments = std::vector<std::shared_ptr<BaseSegment>>{column_count};
+  for (auto column_id = ColumnID{0}; column_id < column_count; ++column_id) {
     const auto segment_to_compress = chunk_to_compress.get_segment(column_id);
     const auto segment_type = _column_definitions[column_id].type;
 
@@ -147,7 +147,6 @@ void Table::compress_chunk(ChunkID chunk_id) {
       });
     });
   }
-
   // Wait for the completion of the threads
   for (auto& thread : threads) {
     thread.join();
@@ -155,7 +154,7 @@ void Table::compress_chunk(ChunkID chunk_id) {
 
   // Create a new compressed chunk using the compressed segments vector
   auto compressed_chunk = std::make_shared<Chunk>();
-  for (auto column_id = ColumnID{0}; column_id < chunk_size; ++column_id) {
+  for (auto column_id = ColumnID{0}; column_id < column_count; ++column_id) {
     compressed_chunk->add_segment(compressed_segments[column_id]);
   }
 

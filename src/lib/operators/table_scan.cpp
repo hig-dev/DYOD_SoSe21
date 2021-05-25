@@ -104,7 +104,17 @@ void TableScan::_scan_dictionary_segment(const ChunkID& chunk_id, DictionarySegm
 
 template <typename T>
 void TableScan::_scan_reference_segment(const ChunkID& chunk_id, ReferenceSegment& segment, PosList& pos_list,
-                                        std::function<bool(const T)>& comparator_function) {}
+                                        std::function<bool(const T)>& comparator_function) {
+  const auto ref_seg_position_list = segment.pos_list();
+  const auto segment_size = segment.size();
+  for (auto segment_index = ChunkOffset{0}; segment_index < segment_size; ++segment_index) {
+    const auto value = type_cast<T>(segment[segment_index]);
+    if (comparator_function(value)) {
+      const auto chunk_offset = (*ref_seg_position_list)[segment_index];
+      pos_list.emplace_back(chunk_offset);
+    }
+  }
+}
 
 template <typename T>
 void TableScan::_scan_segment(const ChunkID& chunk_id, std::shared_ptr<BaseSegment>& segment, PosList& pos_list,
@@ -141,9 +151,7 @@ T TableScan::_get_typed_search_value() {
 
 std::shared_ptr<const Table> TableScan::_on_execute() {
   const auto input_table = _input_operator->get_output();
-  auto column_count = input_table->column_count();
-  const auto chunk_count = input_table->chunk_count();
-  auto column_type_name = input_table->column_type(_column_id);
+  const auto column_count = input_table->column_count();
 
   auto output_table = std::make_shared<Table>();
   for (auto column_id = ColumnID{0}; column_id < column_count; ++column_id) {
@@ -154,6 +162,7 @@ std::shared_ptr<const Table> TableScan::_on_execute() {
     return output_table;
   }
 
+  const auto column_type_name = input_table->column_type(_column_id);
   resolve_data_type(column_type_name, [&](auto type) {
     using Type = typename decltype(type)::type;
     auto typed_search_value = _get_typed_search_value<Type>();
@@ -162,15 +171,24 @@ std::shared_ptr<const Table> TableScan::_on_execute() {
     auto reference_position_list = std::make_shared<PosList>();
 
     // scan input segments
+    const auto chunk_count = input_table->chunk_count();
     for (auto chunk_id = ChunkID{0}; chunk_id < chunk_count; ++chunk_id) {
       auto segment = input_table->get_chunk(chunk_id).get_segment(_column_id);
       _scan_segment<Type>(chunk_id, segment, *reference_position_list, comparator_function, typed_search_value);
     }
 
+    auto first_reference_segment = std::dynamic_pointer_cast<ReferenceSegment>(
+        input_table->get_chunk(ChunkID{0}).get_segment(ColumnID{0})
+      );
+    // check if input_table contains reference segments, if true we have to get the original table from it
+    const auto referenced_table = (first_reference_segment)
+      ? first_reference_segment->referenced_table()
+      : input_table;
+
     // build referenced segments
     auto referenced_data_chunk = std::make_shared<Chunk>();
     for (auto column_id = ColumnID{0}; column_id < column_count; ++column_id) {
-      auto reference_segment = std::make_shared<ReferenceSegment>(input_table, column_id, reference_position_list);
+      auto reference_segment = std::make_shared<ReferenceSegment>(referenced_table, column_id, reference_position_list);
       referenced_data_chunk->add_segment(reference_segment);
     }
     output_table->emplace_chunk(referenced_data_chunk);

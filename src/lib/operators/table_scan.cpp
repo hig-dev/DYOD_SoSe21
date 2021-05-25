@@ -177,13 +177,10 @@ std::shared_ptr<const Table> TableScan::_on_execute() {
       _scan_segment<Type>(chunk_id, segment, *reference_position_list, comparator_function, typed_search_value);
     }
 
-    auto first_reference_segment = std::dynamic_pointer_cast<ReferenceSegment>(
-        input_table->get_chunk(ChunkID{0}).get_segment(ColumnID{0})
-      );
+    auto first_reference_segment =
+        std::dynamic_pointer_cast<ReferenceSegment>(input_table->get_chunk(ChunkID{0}).get_segment(ColumnID{0}));
     // check if input_table contains reference segments, if true we have to get the original table from it
-    const auto referenced_table = (first_reference_segment)
-      ? first_reference_segment->referenced_table()
-      : input_table;
+    const auto referenced_table = (first_reference_segment) ? first_reference_segment->referenced_table() : input_table;
 
     // build referenced segments
     auto referenced_data_chunk = std::make_shared<Chunk>();

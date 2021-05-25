@@ -93,4 +93,18 @@ TEST_F(ReferenceSegmentTest, RetrievesValuesFromChunks) {
   EXPECT_EQ(reference_segment[2], column_2[1]);
 }
 
+TEST_F(ReferenceSegmentTest, EstimateMemoryUsage) {
+  auto pos_list = std::make_shared<PosList>(
+      std::initializer_list<RowID>({RowID{ChunkID{0}, 2}, RowID{ChunkID{1}, 0}, RowID{ChunkID{1}, 1}}));
+  auto reference_segment = ReferenceSegment(_test_table, ColumnID{0}, pos_list);
+
+  // For the calculation of the estimated memory use, we use the capacity of the container.
+  // Therefore, the memory use is bigger than the min memory use.
+  // So we use a margin for the test of the memory use.
+  const auto memory_use_margin = 100;
+  const auto min_memory_use = sizeof(ColumnID) + sizeof(RowID) + sizeof(std::shared_ptr<const Table>);
+  EXPECT_TRUE(min_memory_use <= reference_segment.estimate_memory_usage() &&
+              min_memory_use + memory_use_margin > reference_segment.estimate_memory_usage());
+}
+
 }  // namespace opossum

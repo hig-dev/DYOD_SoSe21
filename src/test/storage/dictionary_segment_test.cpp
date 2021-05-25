@@ -86,7 +86,7 @@ TEST_F(StorageDictionarySegmentTest, MemoryUsage) {
   // So we use a margin for the test of the memory use.
   const auto memory_use_margin = 100;
 
-  EXPECT_TRUE(min_memory_use < dict_col->estimate_memory_usage() &&
+  EXPECT_TRUE(min_memory_use <= dict_col->estimate_memory_usage() &&
               min_memory_use + memory_use_margin > dict_col->estimate_memory_usage());
 }
 

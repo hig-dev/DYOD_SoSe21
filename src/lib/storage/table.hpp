@@ -75,7 +75,7 @@ class Table : private Noncopyable {
   // and then adds chunk by chunk
   void add_column_definition(const std::string& name, const std::string& type);
 
-  void copy_column_definition(const std::shared_ptr<const Table>& other_table, const ColumnID column_id);
+  void copy_column_definition(const Table& other_table, const ColumnID column_id);
 
   // adds a column to the end, i.e., right, of the table
   // this can only be done if the table does not yet have any entries, because we would otherwise have to deal

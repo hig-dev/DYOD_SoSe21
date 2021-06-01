@@ -9,7 +9,7 @@ namespace opossum {
 
 TableScan::TableScan(const std::shared_ptr<const AbstractOperator>& input_operator, const ColumnID column_id,
                      const ScanType scan_type, const AllTypeVariant search_value)
-    : _input_operator{input_operator}, _scan_type{scan_type}, _column_id{column_id}, _search_value{search_value} {}
+    : AbstractOperator(input_operator), _scan_type{scan_type}, _column_id{column_id}, _search_value{search_value} {}
 
 ColumnID TableScan::column_id() const { return _column_id; }
 
@@ -19,7 +19,7 @@ const AllTypeVariant& TableScan::search_value() const { return _search_value; }
 
 template <typename T>
 void TableScan::_scan_value_segment(const ChunkID& chunk_id, ValueSegment<T>& segment, PosList& pos_list,
-                                    std::function<bool(const T)>& comparator_function) {
+                                    const std::function<bool(const T)>& comparator_function) {
   const auto values = segment.values();
   const auto segment_size = segment.size();
   for (auto chunk_offset = ChunkOffset{0}; chunk_offset < segment_size; ++chunk_offset) {
@@ -104,8 +104,8 @@ void TableScan::_scan_dictionary_segment(const ChunkID& chunk_id, DictionarySegm
 
 template <typename T>
 void TableScan::_scan_reference_segment(const ChunkID& chunk_id, ReferenceSegment& segment, PosList& pos_list,
-                                        std::function<bool(const T)>& comparator_function) {
-  const auto ref_seg_position_list = segment.pos_list();
+                                        const std::function<bool(const T)>& comparator_function) {
+  const auto& ref_seg_position_list = segment.pos_list();
   const auto segment_size = segment.size();
   for (auto segment_index = ChunkOffset{0}; segment_index < segment_size; ++segment_index) {
     const auto value = type_cast<T>(segment[segment_index]);
@@ -118,7 +118,7 @@ void TableScan::_scan_reference_segment(const ChunkID& chunk_id, ReferenceSegmen
 
 template <typename T>
 void TableScan::_scan_segment(const ChunkID& chunk_id, std::shared_ptr<BaseSegment>& segment, PosList& pos_list,
-                              std::function<bool(const T)>& comparator_function, const T& typed_search_value) {
+                              const std::function<bool(const T)>& comparator_function, const T& typed_search_value) {
   auto reference_segment = std::dynamic_pointer_cast<ReferenceSegment>(segment);
   if (reference_segment) {
     _scan_reference_segment(chunk_id, *reference_segment, pos_list, comparator_function);
@@ -150,12 +150,12 @@ T TableScan::_get_typed_search_value() {
 }
 
 std::shared_ptr<const Table> TableScan::_on_execute() {
-  const auto input_table = _input_operator->get_output();
+  const auto input_table = left_input()->get_output();
   const auto column_count = input_table->column_count();
 
   auto output_table = std::make_shared<Table>();
   for (auto column_id = ColumnID{0}; column_id < column_count; ++column_id) {
-    output_table->copy_column_definition(input_table, column_id);
+    output_table->copy_column_definition(*input_table, column_id);
   }
 
   if (input_table->is_empty()) {
@@ -165,8 +165,8 @@ std::shared_ptr<const Table> TableScan::_on_execute() {
   const auto column_type_name = input_table->column_type(_column_id);
   resolve_data_type(column_type_name, [&](auto type) {
     using Type = typename decltype(type)::type;
-    auto typed_search_value = _get_typed_search_value<Type>();
-    auto comparator_function = _build_comparator_function(typed_search_value);
+    const auto typed_search_value = _get_typed_search_value<Type>();
+    const auto comparator_function = _build_comparator_function(typed_search_value);
 
     auto reference_position_list = std::make_shared<PosList>();
 
@@ -194,12 +194,13 @@ std::shared_ptr<const Table> TableScan::_on_execute() {
 }
 
 template <typename T>
-std::function<bool(const T)> TableScan::_build_comparator_function(const T& right_operand) {
+const std::function<bool(const T)> TableScan::_build_comparator_function(const T& right_operand) {
   return _build_comparator_function(right_operand, _scan_type);
 }
 
 template <typename T>
-std::function<bool(const T)> TableScan::_build_comparator_function(const T& right_operand, const ScanType& scan_type) {
+const std::function<bool(const T)> TableScan::_build_comparator_function(const T& right_operand,
+                                                                         const ScanType& scan_type) {
   switch (scan_type) {
     case ScanType::OpEquals:
       return [&right_operand](const T left_operand) -> bool { return left_operand == right_operand; };

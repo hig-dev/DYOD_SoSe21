@@ -29,8 +29,8 @@ void Table::add_column_definition(const std::string& name, const std::string& ty
   _column_definitions.emplace_back(name, type);
 }
 
-void Table::copy_column_definition(const std::shared_ptr<const Table>& other_table, const ColumnID column_id) {
-  _column_definitions.push_back(other_table->_column_definitions.at(column_id));
+void Table::copy_column_definition(const Table& other_table, const ColumnID column_id) {
+  _column_definitions.push_back(other_table._column_definitions.at(column_id));
 }
 
 void Table::add_column(const std::string& name, const std::string& type) {
@@ -55,21 +55,19 @@ void Table::create_new_chunk() {
   _chunks.emplace_back(new_chunk);
 }
 
-// TODO(max): write test
 void Table::emplace_chunk(std::shared_ptr<Chunk> chunk) {
-  if (row_count() == 0) {
+  if (is_empty()) {
     // only existing chunk is empty -> replace chunk
     _chunks[0] = chunk;
   } else {
-    Assert(_chunks.back()->size() != _target_chunk_size,
-           "Cannot emplace chunk because current last chunk is not full.");
     _chunks.emplace_back(chunk);
   }
 }
 
 bool Table::is_empty() const {
-  if (chunk_count() == 0) return true;
-  return column_count() == 0;
+  if (column_count() == 0) return true;
+  return std::none_of(_chunks.begin(), _chunks.end(),
+                      [](const auto& current_chunk) { return current_chunk->size() > 0; });
 }
 
 ColumnCount Table::column_count() const {

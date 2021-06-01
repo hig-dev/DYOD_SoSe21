@@ -55,6 +55,41 @@ TEST_F(StorageTableTest, RowCount) {
   EXPECT_EQ(t.row_count(), 3u);
 }
 
+TEST_F(StorageTableTest, IsEmpty) {
+  // CASE: no columns
+  Table t_no_columns{2};
+  EXPECT_TRUE(t_no_columns.is_empty());
+
+  // CASE: 1 empty chunk
+  EXPECT_TRUE(t.is_empty());
+
+  // CASE: 2 empty chunks
+  Table t2{2};
+  t2.copy_column_definition(t, ColumnID(0));
+  t2.copy_column_definition(t, ColumnID(1));
+  t2.create_new_chunk();
+  EXPECT_TRUE(t2.is_empty());
+
+  // CASE: 1 chunk with data
+  t.append({4, "Hello,"});
+  EXPECT_FALSE(t.is_empty());
+
+  // CASE: 2 chunks with data
+  t.append({5, "World"});
+  t.append({6, "more"});
+  t.append({7, "data"});
+  EXPECT_FALSE(t.is_empty());
+
+  // CASE: 1 empty chunk, 1 chunk with data
+  Table t3{2};
+  t3.copy_column_definition(t, ColumnID(0));
+  t3.copy_column_definition(t, ColumnID(1));
+  t3.create_new_chunk();
+  t3.append({6, "more"});
+  t3.append({7, "data"});
+  EXPECT_FALSE(t3.is_empty());
+}
+
 TEST_F(StorageTableTest, GetColumnName) {
   EXPECT_EQ(t.column_name(ColumnID{0}), "col_1");
   EXPECT_EQ(t.column_name(ColumnID{1}), "col_2");

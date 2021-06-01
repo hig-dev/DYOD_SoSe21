@@ -10,6 +10,7 @@
 #include "../base_test.hpp"
 #include "gtest/gtest.h"
 
+#include "../../lib/type_cast.hpp"
 #include "operators/print.hpp"
 #include "operators/table_scan.hpp"
 #include "operators/table_wrapper.hpp"
@@ -17,7 +18,6 @@
 #include "storage/table.hpp"
 #include "types.hpp"
 #include "utils/load_table.hpp"
-#include "../../lib/type_cast.hpp"
 
 namespace opossum {
 

@@ -1,10 +1,7 @@
 #include "abstract_operator.hpp"
 
-#include <chrono>
 #include <memory>
 #include <string>
-#include <vector>
-
 #include "storage/table.hpp"
 #include "utils/assert.hpp"
 

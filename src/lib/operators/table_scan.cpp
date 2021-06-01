@@ -1,6 +1,7 @@
 #include "table_scan.hpp"
 
 #include <memory>
+#include <utility>
 
 #include "resolve_type.hpp"
 #include "storage/table.hpp"
@@ -8,8 +9,11 @@
 namespace opossum {
 
 TableScan::TableScan(const std::shared_ptr<const AbstractOperator>& input_operator, const ColumnID column_id,
-                     const ScanType scan_type, const AllTypeVariant search_value)
-    : AbstractOperator(input_operator), _scan_type{scan_type}, _column_id{column_id}, _search_value{search_value} {}
+                     const ScanType scan_type, AllTypeVariant search_value)
+    : AbstractOperator(input_operator),
+      _scan_type{scan_type},
+      _column_id{column_id},
+      _search_value{std::move(search_value)} {}
 
 ScanType TableScan::scan_type() const { return _scan_type; }
 
@@ -113,8 +117,8 @@ void TableScan::_scan_reference_segment(const ChunkID& chunk_id, const Reference
 }
 
 template <typename T>
-void TableScan::_scan_dictionary_segment(const ChunkID& chunk_id, const DictionarySegment<T>& segment, PosList& pos_list,
-                                         const T& typed_search_value) {
+void TableScan::_scan_dictionary_segment(const ChunkID& chunk_id, const DictionarySegment<T>& segment,
+                                         PosList& pos_list, const T& typed_search_value) {
   switch (_scan_type) {
     case ScanType::OpEquals: {
       const auto lower_bound_value_id = segment.lower_bound(typed_search_value);
@@ -155,8 +159,8 @@ void TableScan::_scan_dictionary_segment(const ChunkID& chunk_id, const Dictiona
       const auto upper_bound_value_id = segment.upper_bound(typed_search_value);
       const auto comparator_function =
           (lower_bound_value_id == upper_bound_value_id)
-          ? _build_comparator_function<ValueID>(lower_bound_value_id, ScanType::OpLessThan)
-          : _build_comparator_function<ValueID>(lower_bound_value_id);
+              ? _build_comparator_function<ValueID>(lower_bound_value_id, ScanType::OpLessThan)
+              : _build_comparator_function<ValueID>(lower_bound_value_id);
       _add_attribute_indexes(chunk_id, segment, pos_list, comparator_function);
       break;
     }
@@ -172,8 +176,8 @@ void TableScan::_scan_dictionary_segment(const ChunkID& chunk_id, const Dictiona
 }
 
 template <typename T>
-void _add_attribute_indexes(const ChunkID chunk_id, const DictionarySegment<T>& segment, PosList& pos_list,
-                            const std::function<bool(const ValueID)>& comparator_function) {
+void TableScan::_add_attribute_indexes(const ChunkID chunk_id, const DictionarySegment<T>& segment, PosList& pos_list,
+                                       const std::function<bool(const ValueID)>& comparator_function) {
   const auto attribute_vector = segment.attribute_vector();
   const auto attribute_vector_size = attribute_vector->size();
   for (auto attribute_index = ChunkOffset{0}; attribute_index < attribute_vector_size; ++attribute_index) {

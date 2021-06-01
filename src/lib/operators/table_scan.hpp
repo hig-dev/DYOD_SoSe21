@@ -22,7 +22,7 @@ class Table;
 class TableScan : public AbstractOperator {
  public:
   TableScan(const std::shared_ptr<const AbstractOperator>& input_operator, const ColumnID column_id,
-            const ScanType scan_type, const AllTypeVariant search_value);
+            const ScanType scan_type, AllTypeVariant search_value);
 
   ColumnID column_id() const;
   ScanType scan_type() const;
@@ -51,6 +51,9 @@ class TableScan : public AbstractOperator {
   void _scan_dictionary_segment(const ChunkID& chunk_id, const DictionarySegment<T>& segment, PosList& pos_list,
                                 const T& typed_search_value);
 
+  template <typename T>
+  void _add_attribute_indexes(const ChunkID chunk_id, const DictionarySegment<T>& segment, PosList& pos_list,
+                              const std::function<bool(const ValueID)>& comparator_function);
   template <typename T>
   T _get_typed_search_value();
 

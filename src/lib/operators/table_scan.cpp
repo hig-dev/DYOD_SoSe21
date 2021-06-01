@@ -31,7 +31,7 @@ void TableScan::_scan_value_segment(const ChunkID& chunk_id, ValueSegment<T>& se
 }
 
 template <typename T>
-void _add_attribute_indexes(const ChunkID chunk_id, DictionarySegment<T>& segment, PosList& pos_list,
+void _add_attribute_indexes(const ChunkID chunk_id, const DictionarySegment<T>& segment, PosList& pos_list,
                             const std::function<bool(const ValueID)>& comparator_function) {
   const auto attribute_vector = segment.attribute_vector();
   const auto attribute_vector_size = attribute_vector->size();
@@ -44,7 +44,7 @@ void _add_attribute_indexes(const ChunkID chunk_id, DictionarySegment<T>& segmen
 }
 
 template <typename T>
-void TableScan::_scan_dictionary_segment(const ChunkID& chunk_id, DictionarySegment<T>& segment, PosList& pos_list,
+void TableScan::_scan_dictionary_segment(const ChunkID& chunk_id, const DictionarySegment<T>& segment, PosList& pos_list,
                                          const T& typed_search_value) {
   switch (_scan_type) {
     case ScanType::OpEquals: {
@@ -103,7 +103,7 @@ void TableScan::_scan_dictionary_segment(const ChunkID& chunk_id, DictionarySegm
 }
 
 template <typename T>
-void TableScan::_scan_reference_segment(const ChunkID& chunk_id, ReferenceSegment& segment, PosList& pos_list,
+void TableScan::_scan_reference_segment(const ChunkID& chunk_id, const ReferenceSegment& segment, PosList& pos_list,
                                         const std::function<bool(const T)>& comparator_function) {
   const auto& ref_seg_position_list = segment.pos_list();
   const auto segment_size = segment.size();
@@ -117,7 +117,7 @@ void TableScan::_scan_reference_segment(const ChunkID& chunk_id, ReferenceSegmen
 }
 
 template <typename T>
-void TableScan::_scan_segment(const ChunkID& chunk_id, std::shared_ptr<BaseSegment>& segment, PosList& pos_list,
+void TableScan::_scan_segment(const ChunkID& chunk_id, const std::shared_ptr<BaseSegment>& segment, PosList& pos_list,
                               const std::function<bool(const T)>& comparator_function, const T& typed_search_value) {
   auto reference_segment = std::dynamic_pointer_cast<ReferenceSegment>(segment);
   if (reference_segment) {

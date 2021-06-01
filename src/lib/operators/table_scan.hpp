@@ -40,15 +40,15 @@ class TableScan : public AbstractOperator {
                            const std::function<bool(const T)>& comparator_function);
 
   template <typename T>
-  void _scan_reference_segment(const ChunkID& chunk_id, ReferenceSegment& segment, PosList& pos_list,
+  void _scan_reference_segment(const ChunkID& chunk_id, const ReferenceSegment& segment, PosList& pos_list,
                                const std::function<bool(const T)>& comparator_function);
 
   template <typename T>
-  void _scan_dictionary_segment(const ChunkID& chunk_id, DictionarySegment<T>& segment, PosList& pos_list,
+  void _scan_dictionary_segment(const ChunkID& chunk_id, const DictionarySegment<T>& segment, PosList& pos_list,
                                 const T& typed_search_value);
 
   template <typename T>
-  void _scan_segment(const ChunkID& chunk_id, std::shared_ptr<BaseSegment>& segment, PosList& pos_list,
+  void _scan_segment(const ChunkID& chunk_id, const std::shared_ptr<BaseSegment>& segment, PosList& pos_list,
                      const std::function<bool(const T)>& comparator_function, const T& typed_search_value);
 
   template <typename T>

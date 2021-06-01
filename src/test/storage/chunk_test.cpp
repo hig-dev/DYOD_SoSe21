@@ -42,11 +42,9 @@ TEST_F(StorageChunkTest, AddValuesToChunk) {
   c.append({2, "two"});
   EXPECT_EQ(c.size(), 4u);
 
-  if constexpr (HYRISE_DEBUG) {
-    EXPECT_THROW(c.append({}), std::exception);
-    EXPECT_THROW(c.append({4, "val", 3}), std::exception);
-    EXPECT_EQ(c.size(), 4u);
-  }
+  EXPECT_THROW(c.append({}), std::exception);
+  EXPECT_THROW(c.append({4, "val", 3}), std::exception);
+  EXPECT_EQ(c.size(), 4u);
 }
 
 TEST_F(StorageChunkTest, RetrieveSegment) {
@@ -59,6 +57,11 @@ TEST_F(StorageChunkTest, RetrieveSegment) {
   if constexpr (HYRISE_DEBUG) {
     EXPECT_THROW(c.get_segment(ColumnID{42}), std::exception);
   }
+}
+
+TEST_F(StorageChunkTest, MemoryUsage) {
+  c.add_segment(int_value_segment);
+  EXPECT_EQ(c.estimate_memory_usage(), size_t{16});
 }
 
 }  // namespace opossum

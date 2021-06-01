@@ -7,6 +7,7 @@
 #include "../base_test.hpp"
 #include "gtest/gtest.h"
 
+#include "../../lib/storage/dictionary_segment.hpp"
 #include "../lib/resolve_type.hpp"
 #include "../lib/storage/table.hpp"
 
@@ -31,15 +32,35 @@ TEST_F(StorageTableTest, ChunkCount) {
 }
 
 TEST_F(StorageTableTest, GetChunk) {
-  t.get_chunk(ChunkID{0});
+  auto& first_chunk = t.get_chunk(ChunkID{0});
   t.append({4, "Hello,"});
   t.append({6, "world"});
   t.append({3, "!"});
-  t.get_chunk(ChunkID{1});
+  EXPECT_EQ(first_chunk.size(), 2);
+  const auto& second_chunk = std::as_const(t).get_chunk(ChunkID{1});
+  EXPECT_EQ(second_chunk.size(), 1);
 
   if constexpr (HYRISE_DEBUG) {
     EXPECT_THROW(t.get_chunk(ChunkID{42}), std::exception);
   }
+}
+
+TEST_F(StorageTableTest, EmplaceChunk) {
+  t.append({4, "Hello,"});
+  EXPECT_EQ(t.chunk_count(), 1u);
+  EXPECT_EQ(t.row_count(), 1u);
+
+  auto chunk = std::make_shared<Chunk>();
+  std::shared_ptr<BaseSegment> int_value_segment = std::make_shared<ValueSegment<int32_t>>();
+  std::shared_ptr<BaseSegment> string_value_segment = std::make_shared<ValueSegment<std::string>>();
+  chunk->add_segment(int_value_segment);
+  chunk->add_segment(string_value_segment);
+  chunk->append({6, "world"});
+  EXPECT_EQ(chunk->size(), 1u);
+
+  t.emplace_chunk(chunk);
+  EXPECT_EQ(t.chunk_count(), 2u);
+  EXPECT_EQ(t.row_count(), 2u);
 }
 
 TEST_F(StorageTableTest, ColumnCount) { EXPECT_EQ(t.column_count(), 2u); }
@@ -50,6 +71,41 @@ TEST_F(StorageTableTest, RowCount) {
   t.append({6, "world"});
   t.append({3, "!"});
   EXPECT_EQ(t.row_count(), 3u);
+}
+
+TEST_F(StorageTableTest, IsEmpty) {
+  // CASE: no columns
+  Table t_no_columns{2};
+  EXPECT_TRUE(t_no_columns.is_empty());
+
+  // CASE: 1 empty chunk
+  EXPECT_TRUE(t.is_empty());
+
+  // CASE: 2 empty chunks
+  Table t2{2};
+  t2.copy_column_definition(t, ColumnID(0));
+  t2.copy_column_definition(t, ColumnID(1));
+  t2.create_new_chunk();
+  EXPECT_TRUE(t2.is_empty());
+
+  // CASE: 1 chunk with data
+  t.append({4, "Hello,"});
+  EXPECT_FALSE(t.is_empty());
+
+  // CASE: 2 chunks with data
+  t.append({5, "World"});
+  t.append({6, "more"});
+  t.append({7, "data"});
+  EXPECT_FALSE(t.is_empty());
+
+  // CASE: 1 empty chunk, 1 chunk with data
+  Table t3{2};
+  t3.copy_column_definition(t, ColumnID(0));
+  t3.copy_column_definition(t, ColumnID(1));
+  t3.create_new_chunk();
+  t3.append({6, "more"});
+  t3.append({7, "data"});
+  EXPECT_FALSE(t3.is_empty());
 }
 
 TEST_F(StorageTableTest, GetColumnName) {
@@ -82,4 +138,15 @@ TEST_F(StorageTableTest, GetColumnIdByName) {
 
 TEST_F(StorageTableTest, GetChunkSize) { EXPECT_EQ(t.target_chunk_size(), 2u); }
 
+TEST_F(StorageTableTest, CompressChunk) {
+  t.append({0, "Alexander"});
+  t.append({1, "Alexander"});
+  t.compress_chunk(ChunkID{0});
+  auto& compressed_chunk = (t.get_chunk(ChunkID{0}));
+  auto compressed_segment = compressed_chunk.get_segment(ColumnID{1});
+  auto dictionary_segment = std::dynamic_pointer_cast<DictionarySegment<std::string>>(compressed_segment);
+  EXPECT_NE(dictionary_segment, nullptr);
+  EXPECT_EQ(dictionary_segment->get(0), "Alexander");
+  EXPECT_EQ(dictionary_segment->get(1), "Alexander");
+}
 }  // namespace opossum

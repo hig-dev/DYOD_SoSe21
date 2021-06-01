@@ -18,10 +18,10 @@
 namespace opossum {
 
 class TableStatistics;
-struct Column {
+struct ColumnDefinition {
   std::string name;
   std::string type;
-  Column(std::string name, std::string type);
+  ColumnDefinition(std::string name, std::string type);
 };
 
 // A table is partitioned horizontally into a number of chunks
@@ -31,6 +31,8 @@ class Table : private Noncopyable {
   // the parameter specifies the maximum chunk size, i.e., partition size
   // default is the maximum chunk size minus 1. A table holds always at least one chunk
   explicit Table(const ChunkOffset target_chunk_size = std::numeric_limits<ChunkOffset>::max() - 1);
+
+  bool is_empty() const;
 
   // returns the number of columns (cannot exceed ColumnID (uint16_t))
   ColumnCount column_count() const;
@@ -48,8 +50,8 @@ class Table : private Noncopyable {
   const Chunk& get_chunk(ChunkID chunk_id) const;
 
   // Adds a chunk to the table. If the first chunk is empty, it is replaced.
-  // This method intentionally takes the unique ownership of the chunk.
-  void emplace_chunk(std::unique_ptr<Chunk> chunk);
+  // This method intentionally takes the ownership of the chunk.
+  void emplace_chunk(std::shared_ptr<Chunk> chunk);
 
   // Returns a list of all column names.
   const std::vector<std::string> column_names() const;
@@ -68,6 +70,13 @@ class Table : private Noncopyable {
   // return the target chunk size (cannot exceed ChunkOffset (uint32_t))
   ChunkOffset target_chunk_size() const;
 
+  // adds column definition without creating the actual columns
+  // this is helpful when, e.g., an operator first creates the structure of the table
+  // and then adds chunk by chunk
+  void add_column_definition(const std::string& name, const std::string& type);
+
+  void copy_column_definition(const Table& other_table, const ColumnID column_id);
+
   // adds a column to the end, i.e., right, of the table
   // this can only be done if the table does not yet have any entries, because we would otherwise have to deal
   // with default values
@@ -77,18 +86,20 @@ class Table : private Noncopyable {
   // note this is slow and not thread-safe and should be used for testing purposes only
   void append(const std::vector<AllTypeVariant>& values);
 
+  // creates a new chunk and appends it
+  void create_new_chunk();
+
   // compresses a ValueColumn into a DictionaryColumn
   void compress_chunk(ChunkID chunk_id);
 
  protected:
   const uint32_t _target_chunk_size;
 
-  std::vector<std::unique_ptr<Chunk>> _chunks;
-  std::vector<Column> _columns;
+  std::vector<std::shared_ptr<Chunk>> _chunks;
+  std::vector<ColumnDefinition> _column_definitions;
 
   // TODO(hig): If we need this more often, consider to move this to BaseSegment or ValueSegment
   static std::shared_ptr<BaseSegment> _create_value_segment_for_type(const std::string& type);
-  void _append_new_chunk();
   void _append_column_to_chunks(const std::string& type);
 };
 }  // namespace opossum

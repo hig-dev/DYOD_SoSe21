@@ -113,6 +113,12 @@ TEST_F(OperatorsTableScanTest, DoubleScan) {
   EXPECT_TABLE_EQ(scan_2->get_output(), expected_result);
 }
 
+TEST_F(OperatorsTableScanTest, ScanWrongType) {
+  // column 1 is type double, we scan using type string
+  auto scan = std::make_shared<TableScan>(_table_wrapper, ColumnID{1}, ScanType::OpEquals, "STRING");
+  EXPECT_THROW(scan->execute(), std::exception);
+}
+
 TEST_F(OperatorsTableScanTest, EmptyResultScan) {
   auto scan_1 = std::make_shared<TableScan>(_table_wrapper, ColumnID{0}, ScanType::OpGreaterThan, 90000);
   scan_1->execute();

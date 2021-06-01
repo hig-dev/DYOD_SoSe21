@@ -45,6 +45,24 @@ TEST_F(StorageTableTest, GetChunk) {
   }
 }
 
+TEST_F(StorageTableTest, EmplaceChunk) {
+  t.append({4, "Hello,"});
+  EXPECT_EQ(t.chunk_count(), 1u);
+  EXPECT_EQ(t.row_count(), 1u);
+
+  auto chunk = std::make_shared<Chunk>();
+  std::shared_ptr<BaseSegment> int_value_segment = std::make_shared<ValueSegment<int32_t>>();
+  std::shared_ptr<BaseSegment> string_value_segment = std::make_shared<ValueSegment<std::string>>();
+  chunk->add_segment(int_value_segment);
+  chunk->add_segment(string_value_segment);
+  chunk->append({6, "world"});
+  EXPECT_EQ(chunk->size(), 1u);
+
+  t.emplace_chunk(chunk);
+  EXPECT_EQ(t.chunk_count(), 2u);
+  EXPECT_EQ(t.row_count(), 2u);
+}
+
 TEST_F(StorageTableTest, ColumnCount) { EXPECT_EQ(t.column_count(), 2u); }
 
 TEST_F(StorageTableTest, RowCount) {
@@ -131,5 +149,4 @@ TEST_F(StorageTableTest, CompressChunk) {
   EXPECT_EQ(dictionary_segment->get(0), "Alexander");
   EXPECT_EQ(dictionary_segment->get(1), "Alexander");
 }
-
 }  // namespace opossum

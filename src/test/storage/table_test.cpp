@@ -7,6 +7,7 @@
 #include "../base_test.hpp"
 #include "gtest/gtest.h"
 
+#include "../../lib/storage/dictionary_segment.hpp"
 #include "../lib/resolve_type.hpp"
 #include "../lib/storage/table.hpp"
 
@@ -31,11 +32,13 @@ TEST_F(StorageTableTest, ChunkCount) {
 }
 
 TEST_F(StorageTableTest, GetChunk) {
-  t.get_chunk(ChunkID{0});
+  auto& first_chunk = t.get_chunk(ChunkID{0});
   t.append({4, "Hello,"});
   t.append({6, "world"});
   t.append({3, "!"});
-  t.get_chunk(ChunkID{1});
+  EXPECT_EQ(first_chunk.size(), 2);
+  const auto& second_chunk = std::as_const(t).get_chunk(ChunkID{1});
+  EXPECT_EQ(second_chunk.size(), 1);
 
   if constexpr (HYRISE_DEBUG) {
     EXPECT_THROW(t.get_chunk(ChunkID{42}), std::exception);
@@ -81,5 +84,17 @@ TEST_F(StorageTableTest, GetColumnIdByName) {
 }
 
 TEST_F(StorageTableTest, GetChunkSize) { EXPECT_EQ(t.target_chunk_size(), 2u); }
+
+TEST_F(StorageTableTest, CompressChunk) {
+  t.append({0, "Alexander"});
+  t.append({1, "Alexander"});
+  t.compress_chunk(ChunkID{0});
+  auto& compressed_chunk = (t.get_chunk(ChunkID{0}));
+  auto compressed_segment = compressed_chunk.get_segment(ColumnID{1});
+  auto dictionary_segment = std::dynamic_pointer_cast<DictionarySegment<std::string>>(compressed_segment);
+  EXPECT_NE(dictionary_segment, nullptr);
+  EXPECT_EQ(dictionary_segment->get(0), "Alexander");
+  EXPECT_EQ(dictionary_segment->get(1), "Alexander");
+}
 
 }  // namespace opossum

@@ -1,14 +1,7 @@
 #include "value_segment.hpp"
-
-#include <limits>
-#include <memory>
-#include <sstream>
 #include <string>
-#include <utility>
 #include <vector>
-
 #include "type_cast.hpp"
-#include "utils/assert.hpp"
 
 namespace opossum {
 
@@ -34,8 +27,7 @@ const std::vector<T>& ValueSegment<T>::values() const {
 
 template <typename T>
 size_t ValueSegment<T>::estimate_memory_usage() const {
-  // Implementation goes here
-  return 0;
+  return _values.capacity() * sizeof(T);
 }
 
 EXPLICITLY_INSTANTIATE_DATA_TYPES(ValueSegment);

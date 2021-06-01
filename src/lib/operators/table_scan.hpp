@@ -29,11 +29,15 @@ class TableScan : public AbstractOperator {
   const AllTypeVariant& search_value() const;
 
  protected:
-  std::shared_ptr<const Table> _on_execute() override;
-
   const ScanType _scan_type;
   const ColumnID _column_id;
   const AllTypeVariant _search_value;
+
+  std::shared_ptr<const Table> _on_execute() override;
+
+  template <typename T>
+  void _scan_segment(const ChunkID& chunk_id, const std::shared_ptr<BaseSegment>& segment, PosList& pos_list,
+                     const std::function<bool(const T)>& comparator_function, const T& typed_search_value);
 
   template <typename T>
   void _scan_value_segment(const ChunkID& chunk_id, ValueSegment<T>& segment, PosList& pos_list,
@@ -46,10 +50,6 @@ class TableScan : public AbstractOperator {
   template <typename T>
   void _scan_dictionary_segment(const ChunkID& chunk_id, const DictionarySegment<T>& segment, PosList& pos_list,
                                 const T& typed_search_value);
-
-  template <typename T>
-  void _scan_segment(const ChunkID& chunk_id, const std::shared_ptr<BaseSegment>& segment, PosList& pos_list,
-                     const std::function<bool(const T)>& comparator_function, const T& typed_search_value);
 
   template <typename T>
   T _get_typed_search_value();

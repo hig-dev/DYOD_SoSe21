@@ -17,6 +17,7 @@
 #include "storage/table.hpp"
 #include "types.hpp"
 #include "utils/load_table.hpp"
+#include "../../lib/type_cast.hpp"
 
 namespace opossum {
 
@@ -125,6 +126,13 @@ TEST_F(OperatorsTableScanTest, EmptyResultScan) {
 
   for (auto i = ChunkID{0}; i < scan_1->get_output()->chunk_count(); i++)
     EXPECT_EQ(scan_1->get_output()->get_chunk(i).column_count(), 2u);
+}
+
+TEST_F(OperatorsTableScanTest, Getters) {
+  auto scan_1 = std::make_shared<TableScan>(_table_wrapper, ColumnID{0}, ScanType::OpGreaterThan, 90000);
+  EXPECT_EQ(scan_1->scan_type(), ScanType::OpGreaterThan);
+  EXPECT_EQ(scan_1->column_id(), ColumnID{0});
+  EXPECT_EQ(type_cast<int>(scan_1->search_value()), 90000);
 }
 
 TEST_F(OperatorsTableScanTest, SingleScanReturnsCorrectRowCount) {

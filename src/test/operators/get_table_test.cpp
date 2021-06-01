@@ -18,6 +18,11 @@ class OperatorsGetTableTest : public BaseTest {
   std::shared_ptr<Table> _test_table;
 };
 
+TEST_F(OperatorsGetTableTest, GetTableName) {
+  auto gt = std::make_shared<GetTable>("aNiceTestTable");
+  EXPECT_EQ(gt->table_name(), "aNiceTestTable");
+}
+
 TEST_F(OperatorsGetTableTest, GetOutput) {
   auto gt = std::make_shared<GetTable>("aNiceTestTable");
   gt->execute();
